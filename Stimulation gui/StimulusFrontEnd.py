@@ -446,11 +446,8 @@ class LoadAndPlayKonfig(QMainWindow, Ui_MainWindow):
 
         return True
 
-        
-        
+
 if __name__ == '__main__':
-    
     app = QApplication(sys.argv)
     ex = LoadAndPlayKonfig()
     app.exec_()
-    

@@ -13,7 +13,10 @@ from scipy.signal import butter, lfilter
 import math
 import scipy
 from PyQt5 import QtCore
-import PyDAQmx as daq
+try:
+    import PyDAQmx as daq
+except NotImplementedError as err:
+    print(err)
 import ctypes
 
 import matplotlib.pyplot as plt

@@ -1,0 +1,5 @@
+syntax: glob
+docs/_build_html/*
+.idea/*
+*__pycache__*
+*.pyc

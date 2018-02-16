@@ -3,3 +3,4 @@ docs/_build_html/*
 .idea/*
 *__pycache__*
 *.pyc
+*.egg-info*

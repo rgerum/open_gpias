@@ -5,7 +5,7 @@ Created on Wed Nov  8 12:56:07 2017
 @author: rahlfshh
 """
 
-import StimulusBackend
+from . import StimulusBackend
 import numpy as np
 import sys
 from PyQt5.QtWidgets import (QMessageBox, QFileDialog, QPushButton,
@@ -14,8 +14,8 @@ from threading import Thread
 import time
 import os
 from PyQt5.uic import loadUiType
-import Plot_Klasse
-Ui_MainWindow, QMainWindow = loadUiType('Startle_Stimulation.ui')
+from . import Plot_Klasse
+Ui_MainWindow, QMainWindow = loadUiType(os.path.join(os.path.dirname(__file__), 'Startle_Stimulation.ui'))
 import re
 
 Playlist_Directory = "C:/Users/Setup/Desktop/Playlists"
@@ -447,7 +447,11 @@ class LoadAndPlayKonfig(QMainWindow, Ui_MainWindow):
         return True
 
 
-if __name__ == '__main__':
+def main():
     app = QApplication(sys.argv)
     ex = LoadAndPlayKonfig()
     app.exec_()
+
+
+if __name__ == '__main__':
+    main()

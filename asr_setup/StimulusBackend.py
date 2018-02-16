@@ -5,7 +5,8 @@ Created on Thu Oct 26 10:03:06 2017
 @author: rahlfshh
 """
 
-
+import os
+import sys
 import sounddevice as sd
 import numpy as np
 import time
@@ -16,7 +17,7 @@ from PyQt5 import QtCore
 try:
     import PyDAQmx as daq
 except NotImplementedError as err:
-    print(err)
+    print(err, file=sys.stderr)
 import ctypes
 
 import matplotlib.pyplot as plt
@@ -55,11 +56,11 @@ timeToNoiseBurst = 100
 timeNoiseBurst = 20
 
 
-file = open("equalizer schreckstimulus.npy", "rb")
+file = open(os.path.join(os.path.dirname(__file__), "equalizer", "equalizer schreckstimulus.npy"), "rb")
 global h_inv_noiseburst
 h_inv_noiseburst = np.load(file,allow_pickle=False,fix_imports= False)    
 file.close()
-file = open("equalizer praestimulus lautsprecher.npy", "rb")
+file = open(os.path.join(os.path.dirname(__file__), "equalizer", "equalizer praestimulus lautsprecher.npy"), "rb")
 global h_inv_prestim
 h_inv_prestim = np.load(file,allow_pickle=False,fix_imports= False)    
 file.close()
@@ -231,7 +232,6 @@ preStimAttenIDX = 4
 preStimFreqIDX = 5
 ISIIDX = 6
 noiseTimeIDX = 7
-import Plot_Klasse
 
 
 #########This code is adapted from BERA-Messung.py by abrsetup

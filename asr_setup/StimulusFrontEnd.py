@@ -49,6 +49,9 @@ class QFileChooseEdit(QtWidgets.QWidget):
     def text(self):
         return self.lineEdit.text()
 
+    def setText(self, text):
+        self.lineEdit.setText(text)
+
 
 class LoadAndPlayKonfig(QtWidgets.QWidget):
     timeString = ""
@@ -61,7 +64,7 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__()
-        self.setWindowTitle("Load Konfig File")
+        self.setWindowTitle("Acoustic Startle Response - Measure")
 
         self.dir_measurements = Measurement_Directory
 
@@ -90,6 +93,9 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         self.startButton = self.addPushButton(layout_buttons, "Start Measurement", self.startStimulation)
         self.pauseButton = self.addPushButton(layout_buttons, "Pause Measurement", self.pause)
         self.stopButton = self.addPushButton(layout_buttons, "Stop Measurement", self.stop)
+
+        self.pauseButton.setEnabled(False)
+        self.stopButton.setEnabled(False)
 
     def addPushButton(self, layout, name, function):
         button = QtWidgets.QPushButton(name)
@@ -453,6 +459,17 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
 def main():
     app = QtWidgets.QApplication(sys.argv)
     ex = LoadAndPlayKonfig()
+    ex.show()
+    app.exec_()
+
+
+def test():
+    app = QtWidgets.QApplication(sys.argv)
+    ex = LoadAndPlayKonfig()
+    ex.textEdit_Experimenter.setText("Achim")
+    ex.textEdit_Mousname.setText("TestMouse")
+    ex.lineEdit_Path.setText(r"GUI Playlist/ein test_HEARINGTHRESHOLD.npy")
+    ex.textEdit_status.setText("pre10")
     ex.show()
     app.exec_()
 

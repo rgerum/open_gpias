@@ -15,6 +15,13 @@ from threading import Thread
 from . import StimulusBackend
 from . import Plot_Klasse
 
+
+# add exception hook hack to prevent from python just crashing without throwing an exception, which occurs on some Qt5 installations
+def my_excepthook(type, value, tback):
+    sys.__excepthook__(type, value, tback)
+sys.excepthook = my_excepthook
+
+
 Playlist_Directory = "C:/Users/Setup/Desktop/Playlists"
 Measurement_Directory = "C:/Users/Setup/Desktop/Messungen"
 Backup_Measurement_Directory = "C:/Users/Setup/Backup_messungen"
@@ -50,9 +57,14 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
     thisplot = None
     backup_plot_count = 0
 
+    measurement_thread = None
+    plot_window = None
+
     def __init__(self, parent=None):
         super().__init__()
         self.setWindowTitle("Load Konfig File")
+
+        self.dir_measurements = Measurement_Directory
 
         layout1 = QtWidgets.QVBoxLayout(self)
 
@@ -69,14 +81,22 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
 
         layout_properties2 = QtWidgets.QVBoxLayout()
         layout2.addLayout(layout_properties2)
-        self.textEdit_status = self.addComboBox(layout_properties2, "Status:", ["pre", "post"])
+        self.textEdit_status = self.addLineEdit(layout_properties2, "Status:", "pre or post")
         self.textEdit_out = self.addTextBox(layout_properties2, "Output:")
         layout_properties2.addStretch()
 
         layout_buttons = QtWidgets.QHBoxLayout()
         layout1.addLayout(layout_buttons)
-        self.button_start = QtWidgets.QPushButton("Start Measurement")
-        layout_buttons.addWidget(self.button_start)
+
+        self.startButton = self.addPushButton(layout_buttons, "Start Measurement", self.startStimulation)
+        self.pauseButton = self.addPushButton(layout_buttons, "Pause Measurement", self.pause)
+        self.stopButton = self.addPushButton(layout_buttons, "Stop Measurement", self.stop)
+
+    def addPushButton(self, layout, name, function):
+        button = QtWidgets.QPushButton(name)
+        button.clicked.connect(function)
+        layout.addWidget(button)
+        return button
 
     def addLabel(self, layout, name):
         label = QtWidgets.QLabel(name)
@@ -112,15 +132,6 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         layout.addWidget(edit)
         return edit
 
-    def addComboBox(self, layout, name, values):
-        self.addLabel(layout, name)
-
-        edit = QtWidgets.QComboBox()
-        values.insert(0, "--select--")
-        edit.addItems(values)
-        layout.addWidget(edit)
-        return edit
-
     def stop(self):  # stop button pushed
         """
         Callback function for stop button, stops and resets mesurement
@@ -149,24 +160,26 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
                 self.measurement_thread.pause = True
 
     def startStimulation(self):
+        # Check the input fields
         if not self.check_input():
             return
+
+        # If the measurement is paused, resume it
         if self.measurement_thread is not None and self.measurement_thread.pause:
             self.measurement_thread.pause = False
             return
 
         # reset this to notify save_data
         self.timeString = ""
+
+        # try to load the config file
         try:
             konfigFile = open(self.lineEdit_Path.text(), "rb")
         except IOError:
-            msg = QtWidgets.QMessageBox(parent=self)
-            msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText("Die geladenen Konfig File funktioniert nicht")
-            msg.setWindowTitle("Warnung")
-            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msg.exec_()
+            QtWidgets.QMessageBox.warning(self, 'Warning', 'The specified config file cannot be loaded.')
             return
+
+        # check the content of the config file
         konfig = np.load(konfigFile, allow_pickle=False, fix_imports=False)
         if self.lineEdit_Path.text()[-11:] == "_TURNER.npy":
             self.turner = True
@@ -174,45 +187,26 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
 
             for a in konfig[5:]:
                 if a[4] != 0 or a[5] != 0 or a[6] != 0 or len(a) != 8:
-                    msg = QtWidgets.QMessageBox(parent=self)
-                    msg.setIcon(QtWidgets.QMessageBox.Warning)
-                    msg.setText("Die geladene Datei ist beschädigt.")
-                    msg.setWindowTitle("Warnung")
-                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                    msg.exec_()
+                    QtWidgets.QMessageBox.warning(self, 'Warning', 'The loaded config file is corrupted.')
                     raise RuntimeError
         elif self.lineEdit_Path.text()[-32:] == "_TURNER_AND_HEARINGTHRESHOLD.npy":
             self.turner = True
             self.hearingThreshold = True
             for a in konfig:
                 if len(a) != 8:
-                    msg = QtWidgets.QMessageBox(parent=self)
-                    msg.setIcon(QtWidgets.QMessageBox.Warning)
-                    msg.setText("Die geladene Datei ist beschädigt.")
-                    msg.setWindowTitle("Warnung")
-                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                    msg.exec_()
+                    QtWidgets.QMessageBox.warning(self, 'Warning', 'The loaded config file is corrupted.')
                     raise RuntimeError
         elif self.lineEdit_Path.text()[-21:] == "_HEARINGTHRESHOLD.npy":
             self.turner = False
             self.hearingThreshold = True
             for a in konfig:
                 if a[0] != 0 or a[1] != 0 or a[2] != 0 or a[3] != 0:
-                    msg = QtWidgets.QMessageBox(parent=self)
-                    msg.setIcon(QtWidgets.QMessageBox.Warning)
-                    msg.setText("Die geladene Datei ist beschädigt.")
-                    msg.setWindowTitle("Warnung")
-                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                    msg.exec_()
+                    QtWidgets.QMessageBox.warning(self, 'Warning', 'The loaded config file is corrupted.')
                     raise RuntimeError
         else:
-            msg = QtWidgets.QMessageBox(parent=self)
-            msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText("Der Name der Datei ist nicht regelkonform.")
-            msg.setWindowTitle("Warnung")
-            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msg.exec_()
+            QtWidgets.QMessageBox.warning(self, 'Warning', 'The name of the config file does not match.')
             raise RuntimeError
+
         # StimulusBackend.startStimulation(konfig)
         self.textEdit_out.clear()  # clears output text
         self.startButton.setEnabled(False)
@@ -232,26 +226,6 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
 
         Thread(target=self.measurement_thread.run_thread, args=()).start()  # start Measurement
         time.sleep(1)
-
-    def initUI(self):
-        self.dir_measurements = Measurement_Directory
-        self.openButton = QtWidgets.QPushButton("Open...")
-
-        def selectFile():
-            self.lineEdit_Path.setText(QtWidgets.QFileDialog.getOpenFileName(
-                directory=Playlist_Directory,
-                filter="byteType (*_HEARINGTHRESHOLD.npy *_TURNER.npy *_TURNER_AND_HEARINGTHRESHOLD.npy)")[0])
-
-        self.browseButton.clicked.connect(selectFile)
-        self.startButton.clicked.connect(self.startStimulation)
-        self.stopButton.clicked.connect(self.stop)  # program stops
-        self.pauseButton.clicked.connect(self.pause)  # program pauses
-
-        self.measurement_thread = None
-        self.plot_window = None
-
-        self.setWindowTitle('Load Konfig File')
-        self.show()
 
     def update_timer(self, konfigArray, idx):
         print("hallo1")
@@ -306,7 +280,7 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         self.startButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.pauseButton.setEnabled(False)
-        self.MessageBox('Measurement Completed', mtype='information')
+        QtWidgets.QMessageBox.information(self, 'Finished', 'Measurement Completed')
         self.measurement_thread = None
         self.lcdNumber.display(0)
         self.measurement_thread = None
@@ -315,7 +289,7 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         # self.timer.stop()
         self.startButton.setEnabled(False)
         self.pauseButton.setEnabled(True)
-        self.MessageBox("The door can be opened.", 'information', title='Paused')
+        QtWidgets.QMessageBox.information(self, 'Paused', 'The door can be opened.')
         self.textEdit_out.setText('Measurement paused')
 
     def m_resumed(self):
@@ -329,7 +303,7 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         self.stopButton.setEnabled(False)
         if self.measurement_thread is not None:
             self.measurement_thread.pause = False  # reset in case pause button was pressed
-        self.MessageBox("Measurement stopped", mtype='information', title='info')
+        QtWidgets.QMessageBox.information(self, 'Stopped', 'Measurement stopped.')
         self.lcdNumber.display(0)
         self.measurement_thread = None
         if self.shutDown:
@@ -349,9 +323,9 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
             fileNameEnding = "_threshold"
         else:
             raise RuntimeError
-        dirname = os.path.join(self.textEdit_Experimenter.toPlainText(), self.textEdit_Mousname.toPlainText(),
-                               self.textEdit_status.toPlainText(), self.timeString)
-        filename = "UNFINISHED_" + self.textEdit_Experimenter.toPlainText() + '_' + self.textEdit_Mousname.toPlainText() + '_' + self.textEdit_status.toPlainText() + "_" + fileNameEnding + "_" + self.timeString
+        dirname = os.path.join(self.textEdit_Experimenter.text(), self.textEdit_Mousname.text(),
+                               self.textEdit_status.text(), self.timeString)
+        filename = "UNFINISHED_" + self.textEdit_Experimenter.text() + '_' + self.textEdit_Mousname.text() + '_' + self.textEdit_status.text() + "_" + fileNameEnding + "_" + self.timeString
         directory = os.path.join(self.dir_measurements, dirname)
 
         if not os.path.exists(directory):
@@ -398,48 +372,11 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
                 only_amplitude[i][local_preStimAttenIDX] = noise_atten
         return only_amplitude
 
-        ############code from bera##############
-
-    def MessageBox(self, msg, mtype='error', title=None):
-        """
-        opens a Message Box and displays a message
-
-        Parameters
-        ----------
-        mtype: the message type: 'error', 'warning' | 'information' (default: 'error')
-
-        """
-
-        mbox = QtWidgets.QMessageBox()
-        mbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        mbox.setText(msg)
-
-        if type == 'error':
-            mbox.setIcon(QtWidgets.QMessageBox.Error)
-            if title:
-                mbox.setWindowTitle(title)
-            else:
-                mbox.setWindowTitle("Error")
-        elif type == 'information':
-            mbox.setIcon(QtWidgets.QMessageBox.Info)
-            if title:
-                mbox.setWindowTitle(title)
-            else:
-                mbox.setWindowTitle("")
-        elif type == 'warning':
-            mbox.setIcon(QtWidgets.QMessageBox.Warning)
-            if title:
-                mbox.setWindowTitle(title)
-            else:
-                mbox.setWindowTitle("Warning")
-
-        mbox.exec_()
-
-        ############end code from bera##############
-
-    # our owen close event to prevent the user from closing without intention
-    # further more the measurment thread is closed
     def closeEvent(self, event):
+        """
+        our own close event to prevent the user from closing without intention
+        further more the measurement thread is closed
+        """
         if self.shutDown == 1:
             event.ignore()
             return
@@ -467,7 +404,6 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         else:
             self.thisplot.esc()  # MS
 
-    # taken from BERA-Messung.py
     def check_input(self):
         """
         Checks the entries of the textEdit Fields
@@ -478,50 +414,38 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
             False: Exception/Error while reading testEdit Field
             True: Entries correct
         """
+        errors = []
 
-        try:
-            self.mousename = self.textEdit_Mousname.toPlainText()
-            if self.mousename == 'Maus':
-                raise ValueError('Mousename not changed')
-        except:
-            self.MessageBox("Please fill in Mousename")
+        # check if mouse name is given
+        if self.textEdit_Mousname.text() == "":
+            errors.append("Please fill in mouse name")
+
+        # check if experimenter name is given
+        if self.textEdit_Experimenter.text() == '':
+            errors.append("Please fill in experimenter name")
+
+        # check if status is given
+        status = self.textEdit_status.text().strip()
+        if status == "":
+            errors.append("Please fill in status")
+        else:
+            # check if status is either pre or post followed by an integer
+            allowed_status_texts = ["pre", "post"]
+            for text in allowed_status_texts:
+                if status.startswith(text):
+                    value = status[len(text):].strip()
+                    status = text
+            # try to set the text (removing possible spaces in the status)
+            try:
+                self.textEdit_status.setText("%s%d" % (status, int(value)))
+            except (ValueError, UnboundLocalError):
+                errors.append("Status has to be either 'pre' or 'post' followed by an integer.")
+
+        # do we have errors? warn the user!
+        if len(errors):
+            QtWidgets.QMessageBox.critical(self, 'Error', "\n".join(errors))
             return False
-
-        try:
-            self.experimenter = self.textEdit_Experimenter.toPlainText()
-            if self.experimenter == 'Experimenter':
-                raise ValueError('Experimenter not changed')
-        except:
-            self.MessageBox("Please fill in Experimenter")
-            return False
-
-        try:
-            self.status = self.textEdit_status.toPlainText()
-            if self.status == 'pre_or_post':
-                raise ValueError('Status not changed')
-        except:
-            self.MessageBox("Please fill in Status")
-            return False
-
-        #######End Code From Bera    
-        try:
-            self.status = self.textEdit_status.toPlainText()
-            # check for whitespaces
-            if re.search(r"\s", self.status):
-                raise ValueError('Wrong Status')
-            # check for correct form (pre/post (+ number))
-            if self.status[:3] == 'pre':
-                if len(self.status) != 3:
-                    int(self.status[3:])
-            elif self.status[:4] == 'post':
-                if len(self.status) != 4:
-                    int(self.status[4:])
-            else:
-                raise ValueError("Wrong Status")
-        except:
-            self.MessageBox("Please fill in Correct Status")
-            return False
-
+        # if not, everything is fine
         return True
 
 

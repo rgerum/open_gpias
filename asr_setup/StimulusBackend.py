@@ -53,7 +53,7 @@ timeToNoiseBurst = 100
 # Zeit, die der NoiseBurst dauert in ms
 timeNoiseBurst = 20
 
-if 0:
+if 1:
     file = open(os.path.join(os.path.dirname(__file__), "equalizer", "equalizer schreckstimulus.npy"), "rb")
     global h_inv_noiseburst
     h_inv_noiseburst = np.load(file, allow_pickle=False, fix_imports=False)
@@ -362,7 +362,7 @@ class Measurement(QtCore.QObject):
         zeroArray = np.zeros(len(preStimArray))
         # stack different channels
         matrixToPlay = np.dstack((triggerArray, zeroArray, preStimArray, burstArray))[0]
-        sd.play(matrixToPlay, samplerate=SAMPLE_RATE, device='Speakers (ASUS Essence STX II Audio)')
+        self.play(matrixToPlay)
 
         return noiseTime + timeNoiseBurst
 
@@ -394,7 +394,7 @@ class Measurement(QtCore.QObject):
         # stack different channels
         matrixToPlay = np.dstack((triggerArray, zeroArray, preStimArray, burstArray))[0]
         # matrixToPlay=np.dstack((preStimArray,burstArray))[0]
-        sd.play(matrixToPlay, samplerate=SAMPLE_RATE, device='Speakers (ASUS Essence STX II Audio)')
+        self.play(matrixToPlay)
         return noiseTime + timeNoiseBurst
 
     # plays a asr-stimulation including a prepuls as prestimulus
@@ -423,7 +423,7 @@ class Measurement(QtCore.QObject):
         zeroArray = np.zeros(len(preStimArray))
         # stack different channels
         matrixToPlay = np.dstack((triggerArray, zeroArray, preStimArray, burstArray))[0]
-        sd.play(matrixToPlay, samplerate=SAMPLE_RATE, device='Speakers (ASUS Essence STX II Audio)')
+        self.play(matrixToPlay)
         return ISI + timeNoiseBurst
 
     # plays a asr-stimulation without the prepuls
@@ -442,8 +442,11 @@ class Measurement(QtCore.QObject):
         # stack different channels
         matrixToPlay = np.dstack((triggerArray, zeroArray, preStimArray, burstArray))[0]
 
-        sd.play(matrixToPlay, samplerate=SAMPLE_RATE, device='Speakers (ASUS Essence STX II Audio)')
+        self.play(matrixToPlay)
         return ISI + timeNoiseBurst
+
+    def play(self, matrixToPlay):
+        sd.play(matrixToPlay)#, samplerate=SAMPLE_RATE, device='Speakers (ASUS Essence STX II Audio)')
 
     # play Stimulation sound and trigger returns time the stimulation plays in ms
     # carefull this is the time the stimulation needs in ms, there is no buffer included
@@ -476,11 +479,17 @@ class Measurement(QtCore.QObject):
     # performs the measurement using a NI-DAQ card
     # it performs the measurement for durarion_ms milöliseconds
     def perform_measurement(self, duration_ms):
-        analog_input = daq.Task()
-        read = daq.int32()
         rate = self.fs_measurement  # samplingrate of measurement
         num_data_points = int(duration_ms * rate / 1000)
         self.data = np.zeros((6 * num_data_points,), dtype=np.float64)
+        # try to connect to NiDAQ Card. If not return dummy measurement
+        try:
+            analog_input = daq.Task()
+        except NameError:
+            time.sleep(duration_ms / 1000)
+            return self.data
+
+        read = daq.int32()
 
         ###channel ai0: x-Data
         ###channel ai1: y-Data

@@ -21,9 +21,9 @@ def my_excepthook(type, value, tback):
 sys.excepthook = my_excepthook
 
 
-Playlist_Directory = "C:/Users/Setup/Desktop/Playlists"
-Measurement_Directory = "C:/Users/Setup/Desktop/Messungen"
-Backup_Measurement_Directory = "C:/Users/Setup/Backup_messungen"
+Playlist_Directory = "D:/Users/Setup/Desktop/Playlists"
+Measurement_Directory = "D:/Users/Setup/Desktop/Messungen"
+Backup_Measurement_Directory = "D:/Users/Setup/Backup_messungen"
 
 
 class QFileChooseEdit(QtWidgets.QWidget):

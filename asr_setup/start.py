@@ -1,3 +1,4 @@
-from asr_setup.StimulusFrontEnd import main
+from asr_setup.StimulusFrontEnd import main, test
 
-main()
+#main()
+test()

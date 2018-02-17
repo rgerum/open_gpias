@@ -4,3 +4,4 @@ docs/_build_html/*
 *__pycache__*
 *.pyc
 *.egg-info*
+*.orig

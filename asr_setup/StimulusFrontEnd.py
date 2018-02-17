@@ -8,7 +8,6 @@ Created on Wed Nov  8 12:56:07 2017
 import os
 import sys
 import time
-import re
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
 from threading import Thread
@@ -381,7 +380,8 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
             event.ignore()
             return
         if self.shutDown == 2:
-            self.thisplot.esc()  # MS
+            if self.thisplot:
+                self.thisplot.esc()  # MS
             return
 
         if self.measurement_thread is not None:
@@ -402,7 +402,8 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
             else:
                 event.ignore()
         else:
-            self.thisplot.esc()  # MS
+            if self.thisplot:
+                self.thisplot.esc()  # MS
 
     def check_input(self):
         """

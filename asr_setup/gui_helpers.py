@@ -37,11 +37,12 @@ def addLabel(layout, name):
     label = QtWidgets.QLabel(name)
     layout.addWidget(label)
 
-def addLineEdit(layout, name, placeholder):
+def addLineEdit(layout, name, placeholder, text=""):
     addLabel(layout, name)
 
     edit = QtWidgets.QLineEdit()
     edit.setPlaceholderText(placeholder)
+    edit.setText(text)
     layout.addWidget(edit)
     return edit
 
@@ -64,5 +65,24 @@ def addLCDNumber(layout, name):
 
     edit = QtWidgets.QLCDNumber()
     edit.display(0)
+    layout.addWidget(edit)
+    return edit
+
+
+def addComboBox(layout, name, values):
+    addLabel(layout, name)
+
+    edit = QtWidgets.QComboBox()
+    edit.addItems(values)
+    layout.addWidget(edit)
+    return edit
+
+def addSpinBox(layout, name, value, min=0, max=100000, step=1):
+    addLabel(layout, name)
+
+    edit = QtWidgets.QSpinBox()
+    edit.setRange(min, max)
+    edit.setSingleStep(step)
+    edit.setValue(value)
     layout.addWidget(edit)
     return edit

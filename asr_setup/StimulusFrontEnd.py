@@ -13,6 +13,7 @@ from qtpy import QtCore, QtGui, QtWidgets
 from threading import Thread
 from . import StimulusBackend
 from . import Plot_Klasse
+from . import gui_helpers
 
 
 # add exception hook hack to prevent from python just crashing without throwing an exception, which occurs on some Qt5 installations
@@ -24,33 +25,6 @@ sys.excepthook = my_excepthook
 Playlist_Directory = "D:/Users/Setup/Desktop/Playlists"
 Measurement_Directory = "D:/Users/Setup/Desktop/Messungen"
 Backup_Measurement_Directory = "D:/Users/Setup/Backup_messungen"
-
-
-class QFileChooseEdit(QtWidgets.QWidget):
-    def __init__(self, directory, filter):
-        super().__init__()
-        self.layout = QtWidgets.QHBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-
-        self.lineEdit = QtWidgets.QLineEdit()
-        self.lineEdit.setReadOnly(True)
-        self.layout.addWidget(self.lineEdit)
-
-        self.buttonBrowser = QtWidgets.QPushButton("Open...")
-        self.buttonBrowser.clicked.connect(self.selectFile)
-        self.layout.addWidget(self.buttonBrowser)
-
-        self.directory = directory
-        self.filter = filter
-
-    def selectFile(self):
-        self.lineEdit.setText(QtWidgets.QFileDialog.getOpenFileName(directory=self.directory, filter=self.filter)[0])
-
-    def text(self):
-        return self.lineEdit.text()
-
-    def setText(self, text):
-        self.lineEdit.setText(text)
 
 
 class LoadAndPlayKonfig(QtWidgets.QWidget):
@@ -75,71 +49,31 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
 
         layout_properties = QtWidgets.QVBoxLayout()
         layout2.addLayout(layout_properties)
-        self.textEdit_Experimenter = self.addLineEdit(layout_properties, "Experimenter:", "Experimenter")
-        self.textEdit_Mousname = self.addLineEdit(layout_properties, "Animal Name:", "Mouse")
-        self.lineEdit_Path = self.addFileChooser(layout_properties, "Protocol File:")
-        self.lcdNumber = self.addLCDNumber(layout_properties, "Measurement Duration:")
+        self.textEdit_Experimenter = gui_helpers.addLineEdit(layout_properties, "Experimenter:", "Experimenter")
+        self.textEdit_Mousname = gui_helpers.addLineEdit(layout_properties, "Animal Name:", "Mouse")
+        self.lineEdit_Path = gui_helpers.addFileChooser(layout_properties, "Protocol File:", Playlist_Directory, "byteType (*_HEARINGTHRESHOLD.npy *_TURNER.npy *_TURNER_AND_HEARINGTHRESHOLD.npy)")
+        self.lcdNumber = gui_helpers.addLCDNumber(layout_properties, "Measurement Duration:")
         layout_properties.addStretch()
 
         layout_properties2 = QtWidgets.QVBoxLayout()
         layout2.addLayout(layout_properties2)
-        self.textEdit_status = self.addLineEdit(layout_properties2, "Status:", "pre or post")
-        self.textEdit_out = self.addTextBox(layout_properties2, "Output:")
+        self.textEdit_status = gui_helpers.addLineEdit(layout_properties2, "Status:", "pre or post")
+        self.textEdit_out = gui_helpers.addTextBox(layout_properties2, "Output:")
         layout_properties2.addStretch()
 
         layout_buttons = QtWidgets.QHBoxLayout()
         layout1.addLayout(layout_buttons)
 
-        self.startButton = self.addPushButton(layout_buttons, "Start Measurement", self.startStimulation)
-        self.pauseButton = self.addPushButton(layout_buttons, "Pause Measurement", self.pause)
-        self.stopButton = self.addPushButton(layout_buttons, "Stop Measurement", self.stop)
+        self.startButton = gui_helpers.addPushButton(layout_buttons, "Start Measurement", self.startStimulation)
+        self.pauseButton = gui_helpers.addPushButton(layout_buttons, "Pause Measurement", self.pause)
+        self.stopButton = gui_helpers.addPushButton(layout_buttons, "Stop Measurement", self.stop)
 
         self.pauseButton.setEnabled(False)
         self.stopButton.setEnabled(False)
 
-    def addPushButton(self, layout, name, function):
-        button = QtWidgets.QPushButton(name)
-        button.clicked.connect(function)
-        layout.addWidget(button)
-        return button
-
-    def addLabel(self, layout, name):
-        label = QtWidgets.QLabel(name)
-        layout.addWidget(label)
-
-    def addLineEdit(self, layout, name, placeholder):
-        self.addLabel(layout, name)
-
-        edit = QtWidgets.QLineEdit()
-        edit.setPlaceholderText(placeholder)
-        layout.addWidget(edit)
-        return edit
-
-    def addTextBox(self, layout, name):
-        self.addLabel(layout, name)
-
-        edit = QtWidgets.QTextEdit()
-        layout.addWidget(edit)
-        return edit
-
-    def addFileChooser(self, layout, name):
-        self.addLabel(layout, name)
-
-        edit = QFileChooseEdit(Playlist_Directory, "byteType (*_HEARINGTHRESHOLD.npy *_TURNER.npy *_TURNER_AND_HEARINGTHRESHOLD.npy)")
-        layout.addWidget(edit)
-        return edit
-
-    def addLCDNumber(self, layout, name):
-        self.addLabel(layout, name)
-
-        edit = QtWidgets.QLCDNumber()
-        edit.display(0)
-        layout.addWidget(edit)
-        return edit
-
     def stop(self):  # stop button pushed
         """
-        Callback function for stop button, stops and resets mesurement
+        Callback function for stop button, stops and resets measurement
         """
         self.pauseButton.setEnabled(False)
         self.startButton.setEnabled(False)

@@ -60,7 +60,7 @@ class Measurement(QtCore.QObject):
     def run_thread(self):
         # all data measures for this measurement, if you want to increase the
         # measurement sample rate you might consider changing this to only
-        # containing the recent measurement. Be carefull to change this in
+        # containing the recent measurement. Be careful to change this in
         # the hole code!
         all_data = np.zeros((len(self.konfigList), 1 + int(6 * self.fs_measurement * 16.5)))
 
@@ -68,7 +68,7 @@ class Measurement(QtCore.QObject):
         data_extracted = np.zeros((len(self.konfigList), 7, int(0.95 * self.fs_measurement) + 2))
         self.update_timer.emit(self.konfigList, 0)
 
-        # loo over al ASR measurements
+        # loop over all ASR measurements
         for idxStartle in range(len(self.konfigList)):
             print("startleidx: " + str(idxStartle))
             # handle pausing,stopping and resuming
@@ -100,10 +100,10 @@ class Measurement(QtCore.QObject):
             # save which measurement was performed
             data_extracted[idxStartle][6][1:9] = thisKonfig
 
-            # save a backup in case measurement stops or programm crashes
+            # save a backup in case measurement stops or program crashes
             self.backup.emit(data_extracted, all_data)
 
-            # plot the measured Data
+            # plot the measured data
             self.plot_data.emit(data_extracted, idxStartle)
 
             self.update_timer.emit(self.konfigList, idxStartle)
@@ -158,24 +158,24 @@ class Measurement(QtCore.QObject):
 
         read = daq.int32()
 
-        ###channel ai0: x-Data
-        ###channel ai1: y-Data
-        ###channel ai2: z-Data
-        ###channel ai3: Triggerpulse
-        ###channel ai4: Prestim
-        ###channel ai5: noiseburst
+        # channel ai0: x-Data
+        # channel ai1: y-Data
+        # channel ai2: z-Data
+        # channel ai3: Triggerpulse
+        # channel ai4: Prestim
+        # channel ai5: noiseburst
 
         analog_input.CreateAIVoltageChan(b'Dev2/ai0:5', b'', daq.DAQmx_Val_Cfg_Default, -10., 10., daq.DAQmx_Val_Volts,
                                          None)
         analog_input.CfgSampClkTiming(b'', rate, daq.DAQmx_Val_Rising, daq.DAQmx_Val_FiniteSamps, num_data_points)
-        #
-        #        # DAQmx Start Code
+
+        # DAQmx Start Code
         analog_input.StartTask()
-        #
-        #        # DAQmx Read Code
+
+        # DAQmx Read Code
         analog_input.ReadAnalogF64(num_data_points, duration_ms / 1000, daq.DAQmx_Val_GroupByChannel, self.data,
                                    6 * num_data_points, ctypes.byref(read), None)
-        #
+        # DAQmx stop the task
         analog_input.StopTask()
         return self.data
 

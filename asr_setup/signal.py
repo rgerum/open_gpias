@@ -167,8 +167,8 @@ class Signal:
         return ret
 
     def flaten_the_frequency_response(self, signal, prestim_signal=True):
-        """ flatens the frequency response with help of the equalizer calculated by nlms
-            only returns the part of the convlution at which point the max of the h_inv enters/leaves signal
+        """ flattens the frequency response with help of the equalizer calculated by nlms
+            only returns the part of the convolution at which point the max of the h_inv enters/leaves signal
         """
         if prestim_signal:
             equalizer = self.h_inv_prestim

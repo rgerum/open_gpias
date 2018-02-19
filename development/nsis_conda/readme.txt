@@ -5,4 +5,4 @@ Then install the conda-execute package:
     
 and then execute the asr_setup_conda.nsi file:
 
-    conda execute asr_setup_conda.nsi
+    conda execute asr_conda.nsi

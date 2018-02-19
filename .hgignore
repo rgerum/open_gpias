@@ -5,3 +5,4 @@ docs/_build_html/*
 *.pyc
 *.egg-info*
 *.orig
+development/nsis_conda/ASR_Setup.exe

@@ -10,7 +10,7 @@ Windows Installer
 If you have no Python installation and just want to get started, our installer is the best option for you. Just download
 and execute the following installer:
 
-`Download: ClickPoints Installer <https://bitbucket.org/fabry_biophysics/clickpoints/downloads/ClickPoints.exe>`_
+`Download: Installer <https://bitbucket.org/randrian/asr_setup/downloads/ASR_Setup.exe>`_
 
 This will install the miniconda environment, if it is not already installed and download the asr_setup conda package.
 

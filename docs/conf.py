@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # conf.py
 
-# Copyright (c) 2015-2016, Richard Gerum, Sebastian Richter
+# Copyright (c) 2015-2016, Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum
 #
 # This file is part of ClickPoints.
 #
@@ -67,8 +67,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'asr_setup'
-copyright = u'2018, Richard Gerum, Sebastian Richter'
-author = u'Richard Gerum, Sebastian Richter'
+copyright = u'2018, Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
+author = u'Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -248,7 +248,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   (master_doc, 'asr_setup.tex', u'ASR-Setup Documentation',
-   u'Richard Gerum, Sebastian Richter', 'manual'),
+   u'Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

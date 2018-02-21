@@ -17,8 +17,12 @@ class QFileChooseEdit(QtWidgets.QWidget):
         self.directory = directory
         self.filter = filter
 
+        self.editingFinished = self.lineEdit.editingFinished
+        self.textEdited = self.lineEdit.textEdited
+
     def selectFile(self):
         self.lineEdit.setText(QtWidgets.QFileDialog.getOpenFileName(directory=self.directory, filter=self.filter)[0])
+        self.textEdited.emit(self.lineEdit.text())
 
     def text(self):
         return self.lineEdit.text()

@@ -11,7 +11,7 @@ import sounddevice as sd
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-from PyQt5 import QtCore
+from qtpy import QtCore
 
 try:
     import PyDAQmx as daq

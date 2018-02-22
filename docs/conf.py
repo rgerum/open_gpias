@@ -22,6 +22,7 @@
 import sys
 import os
 import shlex
+import asr_setup.signal
 
 print(os.getcwd())
 

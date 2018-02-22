@@ -14,6 +14,7 @@ ASR-Setup is a program written in the Python programming language.
    :maxdepth: 2
 
    installation
+   hardware
 
 Note
 ----

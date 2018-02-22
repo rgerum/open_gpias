@@ -30,3 +30,12 @@ Amplifier
 Broadband low noise Amplifier
 -Amp74, Thomas Wulf, Frankfurt
 -Amp75, Thomas Wulf, Frankfurt
+
+Sensor System (for ASR Amplitude)
+---------------------------------
+
+.. figure:: images/Sensors.png
+:alt: ConfigFile scope
+:scale: 40%
+
+Scope of ConfigFiles

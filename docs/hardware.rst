@@ -13,16 +13,20 @@ should be used, the soundcard needs at least **three** channels:
 - pre stimulus
 - startle stimulus
 
-In our setup we use a *Asus Xonar STX II* soundcard.
+In our setup we use a *Asus Xonar Essence STX II* 7.1 soundcard (SNR: 124 dB, channels: 8, sampling rate: <192 kHz ).
 
 
 NiDAQ-Card
 ----------
-
+PCIe-6320 connected to a Breakoutbox BNC-2110
 
 Loudspeaker
 -----------
-
+Pre-Stimulus Loudspeaker: Two-way loudspeaker Canton Plus XS.2
+Sartle-Stimulus Loudspeaker: Neo-25s (Sinuslive)
 
 Amplifier
 ---------
+Broadband low noise Amplifier
+-Amp74, Thomas Wulf, Frankfurt
+-Amp75, Thomas Wulf, Frankfurt

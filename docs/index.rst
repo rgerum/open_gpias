@@ -15,6 +15,7 @@ ASR-Setup is a program written in the Python programming language.
 
    installation
    hardware
+   signal
 
 Note
 ----

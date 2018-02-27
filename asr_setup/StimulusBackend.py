@@ -5,12 +5,10 @@ Created on Thu Oct 26 10:03:06 2017
 @author: rahlfshh
 """
 
-import os
 import sys
 import sounddevice as sd
 import numpy as np
 import time
-import matplotlib.pyplot as plt
 from qtpy import QtCore
 
 try:
@@ -19,7 +17,7 @@ except NotImplementedError as err:
     print(err, file=sys.stderr)
 import ctypes
 
-from .signal import Signal
+from .soundSignal import Signal
 
 
 # Indices to access the config array
@@ -43,35 +41,37 @@ class Measurement(QtCore.QObject):
     paused = QtCore.Signal()
     resumed = QtCore.Signal()
 
-    # TODO fs_measurement sollte auch globale variable sein
-    def __init__(self, konfigList, fs_measurement):
+    data = None
+    protocol = None
+
+    pause = False
+    stop = False
+
+    def __init__(self, protocol, config):
         QtCore.QObject.__init__(self)
-        self.konfigList = konfigList
-        self.fs_measurement = fs_measurement
-        self.pause = False  # pause measurement at start of iteration
-        self.stop = False  # stop measurement at start of iteration
-        self.thisplot = None  # TODO MS
-        np.random.seed(1234)
+        self.protocolWidget = protocol
+        self.config = config
 
-        self.signal = Signal()
-        # Stimulus immergleich
+        self.signal = Signal(config)
 
-    # runs the thread to start the ASR-measurements
     def run_thread(self):
+        """  runs the thread to start the ASR-measurements """
+        self.protocol = self.protocolWidget.protocol
+
         # all data measures for this measurement, if you want to increase the
         # measurement sample rate you might consider changing this to only
         # containing the recent measurement. Be careful to change this in
         # the hole code!
-        all_data = np.zeros((len(self.konfigList), 1 + int(6 * self.fs_measurement * 16.5)))
+        all_data = np.zeros((len(self.protocol), 1 + int(6 * self.config.recordingrate * 16.5)))
 
         # extracted measured Data of the form [index of konfigarray][channel][data]
-        data_extracted = np.zeros((len(self.konfigList), 7, int(0.95 * self.fs_measurement) + 2))
-        self.update_timer.emit(self.konfigList, 0)
+        data_extracted = np.zeros((len(self.protocol), 7, int(0.95 * self.config.recordingrate) + 2))
+        self.update_timer.emit(self.protocol, 0)
 
         # loop over all ASR measurements
-        for idxStartle in range(len(self.konfigList)):
+        for idxStartle in range(len(self.protocol)):
             print("startleidx: " + str(idxStartle))
-            # handle pausing,stopping and resuming
+            # handle pausing, stopping and resuming
             if self.pause:
                 self.paused.emit()  # notify main thread
 
@@ -87,7 +87,7 @@ class Measurement(QtCore.QObject):
                 self.stopped.emit()
                 return
 
-            thisKonfig = self.konfigList[idxStartle]
+            thisKonfig = self.protocol[idxStartle]
             stimulation_duration = self.play_stimulation(thisKonfig) + 1000
 
             # perform the measurement of the Data
@@ -106,7 +106,7 @@ class Measurement(QtCore.QObject):
             # plot the measured data
             self.plot_data.emit(data_extracted, idxStartle)
 
-            self.update_timer.emit(self.konfigList, idxStartle)
+            self.update_timer.emit(self.protocol, idxStartle)
 
             # if the stimulation crashes or the sound card isn't active there
             # will be no trigger. This is absolutely not supposed to happen
@@ -119,12 +119,14 @@ class Measurement(QtCore.QObject):
     def play(self, matrixToPlay):
         sd.play(matrixToPlay)#, samplerate=SAMPLE_RATE, device='Speakers (ASUS Essence STX II Audio)')
 
-    # play Stimulation sound and trigger returns time the stimulation plays in ms
-    # carefull this is the time the stimulation needs in ms, there is no buffer included
-    # the needed buffer may depend on the soundcard
     def play_stimulation(self, thisKonfig):
+        """
+        play Stimulation sound and trigger returns time the stimulation plays in ms
+        careful this is the time the stimulation needs in ms, there is no buffer included
+        the needed buffer may depend on the soundcard
+        """
         print(thisKonfig)
-        # should never occure if the konfig array is loaded from a correctly generated konfig file
+        # should never occur if the konfig array is loaded from a correctly generated konfig file
         # but is no big hold up
         if len(thisKonfig) != 8:
             raise RuntimeError("Konfig array is wrong, please generate a new one")
@@ -137,16 +139,29 @@ class Measurement(QtCore.QObject):
         ISI = thisKonfig[ISIIDX]
         noiseTime = thisKonfig[noiseTimeIDX]
         if noise:
-            matrixToPlay, result = self.signal.gpias_gap(noiseFreqMin, noiseFreqMax, noiseTime, noise_type=noise, gap=noiseGap)
+            matrixToPlay, result = self.signal.gpiasGap(noiseFreqMin, noiseFreqMax, noiseTime, noise_type=noise, doGap=noiseGap)
         else:
-            matrixToPlay, result = self.signal.asr_prepuls(preStimFreq, preStimAtten, ISI, prepulse=preStimAtten >= 0)
+            matrixToPlay, result = self.signal.asrPrepuls(preStimFreq, preStimAtten, ISI, prepulse=preStimAtten >= 0)
         self.play(matrixToPlay)
         return result
 
-    # performs the measurement using a NI-DAQ card
-    # it performs the measurement for duration_ms milliseconds
+    def checkNiDAQ(self):
+        try:
+            analog_input = daq.Task()
+        except NameError:
+            return False, "niDAQmx library not found!"
+
+        analog_input.CreateAIVoltageChan(self.config.recording_device + b'/ai0:5', b'', daq.DAQmx_Val_Cfg_Default,
+                                         -10., 10., daq.DAQmx_Val_Volts, None)
+        analog_input.CfgSampClkTiming(b'', self.config.recordingrate, daq.DAQmx_Val_Rising, daq.DAQmx_Val_FiniteSamps, 1000)
+        return True, "niDAQmx device %s ready to record channels ai0-5 at %d Hz" % (self.config.recording_device, self.config.recordingrate)
+
     def perform_measurement(self, duration_ms):
-        rate = self.fs_measurement  # sampling rate of measurement
+        """
+        performs the measurement using a NI-DAQ card
+        it performs the measurement for duration_ms milliseconds
+        """
+        rate = self.config.recordingrate  # sampling rate of measurement
         num_data_points = int(duration_ms * rate / 1000)
         self.data = np.zeros((6 * num_data_points,), dtype=np.float64)
         # try to connect to NiDAQ Card. If not return dummy measurement
@@ -165,7 +180,7 @@ class Measurement(QtCore.QObject):
         # channel ai4: Prestim
         # channel ai5: noiseburst
 
-        analog_input.CreateAIVoltageChan(b'Dev2/ai0:5', b'', daq.DAQmx_Val_Cfg_Default, -10., 10., daq.DAQmx_Val_Volts,
+        analog_input.CreateAIVoltageChan(self.config.recording_device+b'/ai0:5', b'', daq.DAQmx_Val_Cfg_Default, -10., 10., daq.DAQmx_Val_Volts,
                                          None)
         analog_input.CfgSampClkTiming(b'', rate, daq.DAQmx_Val_Rising, daq.DAQmx_Val_FiniteSamps, num_data_points)
 
@@ -179,58 +194,38 @@ class Measurement(QtCore.QObject):
         analog_input.StopTask()
         return self.data
 
-    # update matrix which holds the extracted Data
-    # data is all data
-    # data_extracted is data of prior iterations and empty rows for comming iteratons
-    # rate: samplerate of measurement
-    def extract_data(self, data, data_extracted, rate, idxStartle):
+    def extract_data(self, data, data_extracted, idxStartle):
+        """
+        update matrix which holds the extracted Data
+        data is all data
+        data_extracted is data of prior iterations and empty rows for coming iterations
+        rate: sample rate of measurement
+        """
+        data = data.reshape(6, len(data)//6)
         thresh = 0.2  # threshold für Trigger
-        data_x = np.zeros(int(len(data) / 6))  # x-channel of sensor
-        data_y = np.zeros(int(len(data) / 6))  # y-channel of sensor
-        data_z = np.zeros(int(len(data) / 6))  # z-channel of sensor
-        data_trigger = np.zeros(int(len(data) / 6))  # trigger-channel of audio cardr
-        data_prestim_audio = np.zeros(int(len(data) / 6))  # prestim-channel of audio card
-        data_burst_audio = np.zeros(int(len(data) / 6))  # noise burst-channel of audio card
-        data_x[:] = data[0:int(len(data) / 6)]
-        data_y[:] = data[int(len(data) / 6):int(len(data) / 3)]
-        data_z[:] = data[int(len(data) / 3):int(len(data) / 2)]
-        data_trigger[:] = data[int(len(data) / 2):int(2 * len(data) / 3)]
-        data_prestim_audio[:] = data[int(2 * len(data) / 3):int(5 * len(data) / 6)]
-        data_burst_audio[:] = data[int(5 * len(data) / 6):]
 
-        i = 0
-        for trigger in data_trigger:
-            # print(trigger)
-            if trigger > thresh:  # here is the trigger and the sound begins
-                if i < 0.5 * rate:
-                    raise RuntimeError(
-                        "There was a trigger in the first 0.5 seconds of the data, this is not supposed to happen! check konfig array and trigger channel(ai03)")
+        # find the first frame where the trigger is higher than the threshold
+        # data[3] is the threshold channel
+        try:
+            i = np.where(data[3] > thresh)[0][0]
+        except IndexError:
+            # no trigger pulse found
+            return data_extracted, False
 
-                # eliminate offset by taking the mean of the data without stimuli
-                # and substract it from all the data before plotting
-                offset_x = data_x[int(i - 0.8 * rate):i]
-                offset_y = data_y[int(i - 0.8 * rate):i]
-                offset_z = data_z[int(i - 0.8 * rate):i]
+        # trigger pulse too early
+        if i < 0.5 * self.config.recordingrate:
+            raise RuntimeError("There was a trigger in the first 0.5 seconds of the data, this is not supposed to happen! check konfig array and trigger channel(ai03)")
 
-                offset_x_mean = np.mean(offset_x, axis=0)
-                offset_y_mean = np.mean(offset_y, axis=0)
-                offset_z_mean = np.mean(offset_z, axis=0)
+        # eliminate offset by taking the mean of the data without stimuli
+        # and subtract it from all the data before plotting
+        offset = data[:3, int(i - 0.8 * self.config.recordingrate):i]
+        offset_mean = np.mean(offset, axis=0)
 
-                # extract all data 800ms trior to trigger
-                data_extracted[idxStartle][0] = data_x[int(i - 0.8 * rate):int(i - 0.8 * rate) + len(
-                    data_extracted[idxStartle][0])] - offset_x_mean
-                data_extracted[idxStartle][1] = data_y[int(i - 0.8 * rate):int(i - 0.8 * rate) + len(
-                    data_extracted[idxStartle][1])] - offset_y_mean
-                data_extracted[idxStartle][2] = data_z[int(i - 0.8 * rate):int(i - 0.8 * rate) + len(
-                    data_extracted[idxStartle][2])] - offset_z_mean
+        # extract all data 800ms prior to trigger
+        data = data[int(i - 0.8 * self.config.recordingrate):int(i - 0.8 * self.config.recordingrate) + data_extracted.shape[2]]
+        # subtract the xyz offset
+        data[:3, :] -= offset_mean
+        # add the data to the extracted data array
+        data_extracted[idxStartle, 0:6, :] = data
 
-                data_extracted[idxStartle][3] = data_trigger[int(i - 0.8 * rate):int(i - 0.8 * rate) + len(
-                    data_extracted[idxStartle][3])]
-                data_extracted[idxStartle][4] = data_prestim_audio[int(i - 0.8 * rate):int(i - 0.8 * rate) + len(
-                    data_extracted[idxStartle][4])]
-                data_extracted[idxStartle][5] = data_burst_audio[int(i - 0.8 * rate):int(i - 0.8 * rate) + len(
-                    data_extracted[idxStartle][5])]
-
-                return data_extracted, True
-            i += 1
-        return data_extracted, False
+        return data_extracted, True

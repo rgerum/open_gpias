@@ -11,6 +11,7 @@ import numpy as np
 import scipy.signal
 import math
 import scipy
+import sounddevice as sd
 
 
 class Signal:
@@ -43,18 +44,46 @@ class Signal:
     # Zeit, die der NoiseBurst dauert in ms
     timeNoiseBurst = 20
 
-    def __init__(self):
-        with open(os.path.join(os.path.dirname(__file__), "equalizer", "equalizer schreckstimulus.npy"), "rb") as file:
-            self.h_inv_noiseburst = np.load(file, allow_pickle=False, fix_imports=False)
+    h_inv_noiseburst = None
+    h_inv_prestim = None
 
-        with open(os.path.join(os.path.dirname(__file__), "equalizer", "equalizer praestimulus lautsprecher.npy"), "rb") as file:
-            self.h_inv_prestim = np.load(file, allow_pickle=False, fix_imports=False)
+    def __init__(self, config):
+        self.config = config
 
         # variable that holds the noiseburst freq
         self.noiseburstArray = []
 
         self.channels = [0, 2, 3]
         self.channel_latency = [0, 0, 14.8125, 14.8125]
+
+    def loadConfig(self):
+        """
+        Load the config data.
+        """
+        self.channels = self.config.channels
+        self.channel_latency = self.config.channel_latency
+
+        with open(self.config.profile_loudspeaker_burst, "rb") as file:
+            self.h_inv_noiseburst = np.load(file, allow_pickle=False, fix_imports=False)
+
+        with open(self.config.profile_loudspeaker_noise, "rb") as file:
+            self.h_inv_prestim = np.load(file, allow_pickle=False, fix_imports=False)
+
+        self.SAMPLE_RATE = self.config.samplerate
+        self.device = self.config.device
+
+    def checkSettings(self):
+        """
+        Check if the soundcard supports the settings
+        """
+        print(self.config.device)
+        print(max(self.config.channels))
+        print(self.config.samplerate)
+        try:
+            sd.check_output_settings(self.config.device, channels=max(self.config.channels), samplerate=self.config.samplerate)
+        except sd.PortAudioError as err:
+            return False, str(err)
+        return True, "Device %s ready to play %d channels at %d Hz" % (self.config.device, max(self.config.channels), self.config.samplerate)
 
     def pureTone(self, duration, frequency):
         """
@@ -93,7 +122,9 @@ class Signal:
         mean = 0
         std = 1
         num_samples = self._getNumSamples(duration)
-        samples = np.random.normal(mean, std, size=num_samples)
+        random = np.random.RandomState()
+        random.seed(1234)
+        samples = random.normal(mean, std, size=num_samples)
         # 0.3% of the values are outside the 3 sigma range, but this should not cause problems.
         # it is not possible to norm by the maximum, as long samples would be too loud.
         samples /= 3 * std
@@ -320,7 +351,7 @@ class Signal:
             v0 = 0.001 / 3200
         squared = filtered_signal ** 2
         sum_squared = np.sum(squared)
-        effective_value = (sum_squared / len(filtered_signal)) ** (1 / 2)
+        effective_value = (sum_squared / np.sum(filtered_signal != 0)) ** (1 / 2)
         level = np.log10(effective_value / v0) * 20
         return level
 
@@ -338,6 +369,8 @@ class Signal:
             equalizer = self.h_inv_prestim
         else:
             equalizer = self.h_inv_noiseburst
+        if equalizer is None:
+            return signal
         adjusted_signal = np.convolve(signal, equalizer)
         idx_max = np.argmax(equalizer)
         output = adjusted_signal[idx_max:len(adjusted_signal) + 1 - len(equalizer) + idx_max]
@@ -357,6 +390,7 @@ class Signal:
     def _adjustFreqAndLevel(self, signal, attenuation, prestim_signal=True):
         """ adjust signal to have a flat frequency response and the right sound pressure level when played on the speaker """
         adjust_factor = self._adjustFactorAttenuation(attenuation, signal, prestim_signal=prestim_signal)
+        print("Factor", adjust_factor, attenuation, prestim_signal, signal)
         flattened = self._flattenFrequencyResponse(signal, prestim_signal=prestim_signal)
         output = flattened * adjust_factor
         self._checkOutputSignal(output)
@@ -401,7 +435,7 @@ class Signal:
         # check how much he channels are shifted
         max_latency = np.max(self.channel_latency)
         # check how many channel t up should have
-        max_channels = np.max(self.channels)
+        max_channels = np.max(self.channels)+1
         # iterate over the signals
         output = None
         for index in range(len(signals)):
@@ -413,7 +447,7 @@ class Signal:
             if output is None:
                 output = np.zeros((len(signal), max_channels))
             # add the signal
-            output[channel, :] = signal
+            output[:, channel] = signal
         # return the joined output
         return output
 
@@ -463,6 +497,10 @@ class Signal:
             preStimArray = np.concatenate((noise(time_noise1),
                                            self.silence(time_gap),
                                            noise(time_noise2)))
+
+            # adjust the output
+            preStimArray = self._adjustFreqAndLevel(preStimArray, self.noiseSPL, prestim_signal=True)
+
         else:
             # times
             time_noise = noiseTime + self.timeNoiseBurst
@@ -470,8 +508,7 @@ class Signal:
             # join the signal: noise
             preStimArray = noise(time_noise)
 
-        # adjust the output
-        self._adjustFreqAndLevel(preStimArray, self.noiseSPL, prestim_signal=True)
+
 
         """ startle pulse channel """
         time_noise = noiseTime
@@ -485,8 +522,8 @@ class Signal:
         burstArray = self._adjustFreqAndLevel(burstArray, self.burstSPL, prestim_signal=False)
 
         """ trigger channel """
-        triggerArray = np.concatenate(self.silence(time_noise),
-                                      np.ones(self._getNumSamples(time_burst)) * 0.1)
+        triggerArray = np.concatenate((self.silence(time_noise),
+                                      np.ones(self._getNumSamples(time_burst)) * 0.1))
 
         # join the channels and apply the channels' latencies
         matrixToPlay = self._joinChannels(triggerArray, preStimArray, burstArray)
@@ -525,6 +562,10 @@ class Signal:
             preStimArray = np.concatenate((self.silence(time_silence1),
                                            self.pureTone(time_tone, preStimFreq),
                                            self.silence(time_silence2)))
+
+            # adjust the output
+            self._adjustFreqAndLevel(preStimArray, preStimLevel, prestim_signal=True)
+
         else:
             # times
             time_total = ISI + self.timeNoiseBurst
@@ -532,8 +573,6 @@ class Signal:
             # join the signal: silence
             preStimArray = self.silence(time_total)
 
-        # adjust the output
-        self._adjustFreqAndLevel(preStimArray, preStimLevel, prestim_signal=True)
 
         """ startle pulse channel """
         time_silence = ISI
@@ -547,8 +586,8 @@ class Signal:
         burstArray = self._adjustFreqAndLevel(burstArray, self.burstSPL, prestim_signal=False)
 
         """ trigger channel """
-        triggerArray = np.concatenate(self.silence(time_silence),
-                                      np.ones(self._getNumSamples(time_burst))*0.1)
+        triggerArray = np.concatenate((self.silence(time_silence),
+                                      np.ones(self._getNumSamples(time_burst))*0.1))
 
         # join the channels and apply the channels' latencies
         matrixToPlay = self._joinChannels(triggerArray, preStimArray, burstArray)

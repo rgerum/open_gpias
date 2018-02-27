@@ -10,10 +10,12 @@ import sys
 import time
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
+import qtawesome as qta
 from threading import Thread
 from . import StimulusBackend
 from . import Plot_Klasse
 from . import gui_helpers
+from .MeasurementPlot import plotWidget
 
 
 # add exception hook hack to prevent from python just crashing without throwing an exception, which occurs on some Qt5 installations
@@ -27,7 +29,7 @@ Measurement_Directory = "D:/Users/Setup/Desktop/Messungen"
 Backup_Measurement_Directory = "D:/Users/Setup/Backup_messungen"
 
 
-class LoadAndPlayKonfig(QtWidgets.QWidget):
+class measurementGui(QtWidgets.QWidget):
     timeString = ""
     shutDown = 0
     thisplot = None
@@ -36,9 +38,11 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
     measurement_thread = None
     plot_window = None
 
-    def __init__(self, parent=None):
+    def __init__(self, parent, protocol, config):
         super().__init__()
         self.setWindowTitle("Acoustic Startle Response - Measure")
+        self.parent = parent
+        self.parent.settingsUpdated.connect(self.statusUpdated)
 
         self.dir_measurements = Measurement_Directory
 
@@ -51,25 +55,53 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         layout2.addLayout(layout_properties)
         self.textEdit_Experimenter = gui_helpers.addLineEdit(layout_properties, "Experimenter:", "Experimenter")
         self.textEdit_Mousname = gui_helpers.addLineEdit(layout_properties, "Animal Name:", "Mouse")
-        self.lineEdit_Path = gui_helpers.addFileChooser(layout_properties, "Protocol File:", Playlist_Directory, "byteType (*_HEARINGTHRESHOLD.npy *_TURNER.npy *_TURNER_AND_HEARINGTHRESHOLD.npy)")
-        self.lcdNumber = gui_helpers.addLCDNumber(layout_properties, "Measurement Duration:")
+        self.textEdit_status = gui_helpers.addLineEdit(layout_properties, "Animal status:", "pre or post")
+
+        self.textEdit_Experimenter.textEdited.connect(self.statusUpdated)
+        self.textEdit_Mousname.textEdited.connect(self.statusUpdated)
+        self.textEdit_status.textEdited.connect(self.statusUpdated)
+
+        self.status_bar = gui_helpers.QStatusBar(dict(Soundcard=False, NiDAQ=False, Protocol=False, Metadata=False), layout_properties)
         layout_properties.addStretch()
 
         layout_properties2 = QtWidgets.QVBoxLayout()
         layout2.addLayout(layout_properties2)
-        self.textEdit_status = gui_helpers.addLineEdit(layout_properties2, "Status:", "pre or post")
-        self.textEdit_out = gui_helpers.addTextBox(layout_properties2, "Output:")
+        self.lcdNumber = gui_helpers.addLCDNumber(layout_properties2, "Measurement status:")
+        self.textEdit_out = gui_helpers.addLogBox(layout_properties2, "Output:")
         layout_properties2.addStretch()
+
+        self.plot = plotWidget()
+        layout1.addWidget(self.plot)
 
         layout_buttons = QtWidgets.QHBoxLayout()
         layout1.addLayout(layout_buttons)
 
-        self.startButton = gui_helpers.addPushButton(layout_buttons, "Start Measurement", self.startStimulation)
-        self.pauseButton = gui_helpers.addPushButton(layout_buttons, "Pause Measurement", self.pause)
-        self.stopButton = gui_helpers.addPushButton(layout_buttons, "Stop Measurement", self.stop)
+        self.startButton = gui_helpers.addPushButton(layout_buttons, "Start Measurement", self.startStimulation, icon=qta.icon("fa.play"))
+        self.pauseButton = gui_helpers.addPushButton(layout_buttons, "Pause Measurement", self.pause, icon=qta.icon("fa.pause"))
+        self.stopButton = gui_helpers.addPushButton(layout_buttons, "Stop Measurement", self.stop, icon=qta.icon("fa.stop"))
 
         self.pauseButton.setEnabled(False)
         self.stopButton.setEnabled(False)
+
+        self.measurement_thread = StimulusBackend.Measurement(protocol, config)
+        self.measurement_thread.plot_data.connect(self.plot_it)
+        self.measurement_thread.backup.connect(self.save_backup)
+        self.measurement_thread.finished.connect(self.m_finished)
+        self.measurement_thread.paused.connect(self.m_paused)
+        self.measurement_thread.stopped.connect(self.m_stopped)
+        self.measurement_thread.resumed.connect(self.m_resumed)
+        self.measurement_thread.update_timer.connect(self.update_timer)
+
+        self.statusUpdated()
+
+        self.textEdit_out.addLog("Program started")
+
+    def statusUpdated(self):
+        status = dict(Soundcard=self.measurement_thread.signal.checkSettings(),
+                      NiDAQ=self.measurement_thread.checkNiDAQ(),
+                      Protocol=self.measurement_thread.protocolWidget.checkProtocol(),
+                      Metadata=self.checkData())
+        self.status_bar.setStatus(status)
 
     def stop(self):  # stop button pushed
         """
@@ -79,7 +111,7 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         self.startButton.setEnabled(False)
 
         if self.measurement_thread is not None:
-            self.textEdit_out.setText('Stopping Measurement. Please wait')
+            #self.textEdit_out.setText('Stopping Measurement. Please wait') # TODO
             self.measurement_thread.stop = True
             self.measurement_thread.pause = False  # In case it was previously paused
         # self.timer.stop()
@@ -95,12 +127,26 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
             else:
                 self.pauseButton.setText("Resume")
                 self.pauseButton.setEnabled(False)
-                self.textEdit_out.setText('Pausing Measurement. Please wait')
+                #self.textEdit_out.setText('Pausing Measurement. Please wait') # TODO
                 self.measurement_thread.pause = True
 
     def startStimulation(self):
+        """
+        Start the stimulation and recording.
+        """
         # Check the input fields
-        if not self.check_input():
+        ok1, message1 = self.checkData()
+        ok2, message2 = self.measurement_thread.protocolWidget.checkProtocol()
+        ok3, message3 = self.measurement_thread.signal.checkSettings()
+        message = ""
+        if not ok1:
+            message += message1+"\n"
+        if not ok2:
+            message += message2+"\n"
+        if not ok3:
+            message += message3+"\n"
+        if not ok1 or not ok2 or not ok3:
+            QtWidgets.QMessageBox.critical(self, 'Error', message)
             return
 
         # If the measurement is paused, resume it
@@ -111,57 +157,14 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         # reset this to notify save_data
         self.timeString = ""
 
-        # try to load the config file
-        try:
-            konfigFile = open(self.lineEdit_Path.text(), "rb")
-        except IOError:
-            QtWidgets.QMessageBox.warning(self, 'Warning', 'The specified config file cannot be loaded.')
-            return
-
-        # check the content of the config file
-        konfig = np.load(konfigFile, allow_pickle=False, fix_imports=False)
-        if self.lineEdit_Path.text()[-11:] == "_TURNER.npy":
-            self.turner = True
-            self.hearingThreshold = False
-
-            for a in konfig[5:]:
-                if a[4] != 0 or a[5] != 0 or a[6] != 0 or len(a) != 8:
-                    QtWidgets.QMessageBox.warning(self, 'Warning', 'The loaded config file is corrupted.')
-                    raise RuntimeError
-        elif self.lineEdit_Path.text()[-32:] == "_TURNER_AND_HEARINGTHRESHOLD.npy":
-            self.turner = True
-            self.hearingThreshold = True
-            for a in konfig:
-                if len(a) != 8:
-                    QtWidgets.QMessageBox.warning(self, 'Warning', 'The loaded config file is corrupted.')
-                    raise RuntimeError
-        elif self.lineEdit_Path.text()[-21:] == "_HEARINGTHRESHOLD.npy":
-            self.turner = False
-            self.hearingThreshold = True
-            for a in konfig:
-                if a[0] != 0 or a[1] != 0 or a[2] != 0 or a[3] != 0:
-                    QtWidgets.QMessageBox.warning(self, 'Warning', 'The loaded config file is corrupted.')
-                    raise RuntimeError
-        else:
-            QtWidgets.QMessageBox.warning(self, 'Warning', 'The name of the config file does not match.')
-            raise RuntimeError
-
-        # StimulusBackend.startStimulation(konfig)
-        self.textEdit_out.clear()  # clears output text
+        #self.textEdit_out.clear()  # clears output text
         self.startButton.setEnabled(False)
         self.stopButton.setEnabled(True)
         self.pauseButton.setEnabled(True)
 
         self.pauseButton.setText("Pause")
 
-        self.measurement_thread = StimulusBackend.Measurement(konfig, 10000)
-        self.measurement_thread.plot_data.connect(self.plot_it)
-        self.measurement_thread.backup.connect(self.save_backup)
-        self.measurement_thread.finished.connect(self.m_finished)
-        self.measurement_thread.paused.connect(self.m_paused)
-        self.measurement_thread.stopped.connect(self.m_stopped)
-        self.measurement_thread.resumed.connect(self.m_resumed)
-        self.measurement_thread.update_timer.connect(self.update_timer)
+        self.textEdit_out.addLog("Measurement started")
 
         Thread(target=self.measurement_thread.run_thread, args=()).start()  # start Measurement
         time.sleep(1)
@@ -192,51 +195,35 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
         else:
             self.backup_plot_count += 1
 
-    # TODO MS
     def plot_it(self, data, idx):
-        if self.thisplot is None:
-            self.thisplot = Plot_Klasse.plotWidget(data[idx, :, :], idx)
-            # saves maximum of acceleration calculated by plot
-            self.thisplot.plot()
-            data[idx][6][0] = self.thisplot.get_max()
-        # from Plot_Klasse import plot
-
-        else:
-            # data = np.copy(data)
-            self.thisplot.esc()
-            # self.thisplot.deleteLater()
-
-            self.thisplot = Plot_Klasse.plotWidget(data[idx, :, :], idx)
-            # saves maximum of acceleration calculated by plot
-            self.thisplot.plot()
-            data[idx][6][0] = self.thisplot.get_max()
-
-        self.thisplot.show()
+        # provide teh plot with the data
+        self.plot.setData(data[idx, :, :], idx)
+        data[idx][6][0] = self.plot.get_max()
 
     def m_finished(self, data_extracted, all_data):
         self.save_data(data_extracted, all_data)
-        self.textEdit_out.setText('Measurement ended')
+        self.textEdit_out.addLog("Measurement finished")
         self.startButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.pauseButton.setEnabled(False)
-        QtWidgets.QMessageBox.information(self, 'Finished', 'Measurement Completed')
         self.measurement_thread = None
         self.lcdNumber.display(0)
         self.measurement_thread = None
+        QtWidgets.QMessageBox.information(self, 'Finished', 'Measurement Completed')
 
     def m_paused(self):
         # self.timer.stop()
         self.startButton.setEnabled(False)
         self.pauseButton.setEnabled(True)
+        self.textEdit_out.addLog("Measurement paused")
         QtWidgets.QMessageBox.information(self, 'Paused', 'The door can be opened.')
-        self.textEdit_out.setText('Measurement paused')
 
     def m_resumed(self):
         self.pauseButton.setEnabled(True)
         self.textEdit_out.setText('')
 
     def m_stopped(self):
-        self.textEdit_out.setText('Measurement stopped')
+        self.textEdit_out.addLog("Measurement stopped")
         self.startButton.setEnabled(True)
         self.pauseButton.setEnabled(False)
         self.stopButton.setEnabled(False)
@@ -345,7 +332,7 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
             if self.thisplot:
                 self.thisplot.esc()  # MS
 
-    def check_input(self):
+    def checkData(self):
         """
         Checks the entries of the textEdit Fields
         and shows Error Message if it is not correct"
@@ -378,28 +365,32 @@ class LoadAndPlayKonfig(QtWidgets.QWidget):
                     status = text
             # try to set the text (removing possible spaces in the status)
             try:
-                self.textEdit_status.setText("%s%d" % (status, int(value)))
+                if status == "post":
+                    self.textEdit_status.setText("%s%d" % (status, int(value)))
+                elif status == "pre":
+                    self.textEdit_status.setText("%s" % (status))
+                else:
+                    raise ValueError
             except (ValueError, UnboundLocalError):
                 errors.append("Status has to be either 'pre' or 'post' followed by an integer.")
 
         # do we have errors? warn the user!
         if len(errors):
-            QtWidgets.QMessageBox.critical(self, 'Error', "\n".join(errors))
-            return False
+            return False, "\n".join(errors)
         # if not, everything is fine
-        return True
+        return True, "Mouse %s measured by %s in state %s" % (self.textEdit_Mousname.text(), self.textEdit_Experimenter.text(), self.textEdit_status.text())
 
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    ex = LoadAndPlayKonfig()
+    ex = measurementGui()
     ex.show()
     app.exec_()
 
 
 def test():
     app = QtWidgets.QApplication(sys.argv)
-    ex = LoadAndPlayKonfig()
+    ex = measurementGui()
     ex.textEdit_Experimenter.setText("Achim")
     ex.textEdit_Mousname.setText("TestMouse")
     ex.lineEdit_Path.setText(r"GUI Playlist/ein test_HEARINGTHRESHOLD.npy")

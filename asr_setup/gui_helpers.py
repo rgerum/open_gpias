@@ -1,4 +1,6 @@
 from qtpy import QtCore, QtGui, QtWidgets
+import qtawesome as qta
+import datetime
 
 class QFileChooseEdit(QtWidgets.QWidget):
     def __init__(self, directory, filter):
@@ -31,9 +33,60 @@ class QFileChooseEdit(QtWidgets.QWidget):
         self.lineEdit.setText(text)
 
 
-def addPushButton(layout, name, function):
+class QStatus(QtWidgets.QLabel):
+    def __init__(self, status, layout=None):
+        super().__init__()
+        self.setStatus(status)
+        if layout is not None:
+            layout.addWidget(self)
+
+    def setStatus(self, value):
+        if isinstance(value, tuple):
+            self.setToolTip(value[1])
+            value = value[0]
+        self.status = value
+        if self.status:
+            self.setPixmap(qta.icon("fa.check", color="green").pixmap(16))
+        else:
+            self.setPixmap(qta.icon("fa.close", color="red").pixmap(16))
+
+
+class QStatusBar(QtWidgets.QWidget):
+    def __init__(self, properties, layout=None):
+        super().__init__()
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.statusWidgets = {}
+        for key in properties:
+            label = QtWidgets.QLabel(key)
+            self.layout.addWidget(label)
+            self.statusWidgets[key] = QStatus(properties[key], self.layout)
+        if layout is not None:
+            layout.addWidget(self)
+
+    def setStatus(self, status):
+        for key in status:
+            self.statusWidgets[key].setStatus(status[key])
+
+
+class QLogWidget(QtWidgets.QTextEdit):
+    log_texts = ""
+
+    def __init__(self, layout=None):
+        super().__init__()
+        if layout is not None:
+            layout.addWidget(self)
+
+    def addLog(self, status):
+        self.log_texts += str(datetime.datetime.now()).split(".")[0]+" - "+status+"\n"
+        self.setText(self.log_texts)
+
+
+def addPushButton(layout, name, function, icon=None):
     button = QtWidgets.QPushButton(name)
     button.clicked.connect(function)
+    if icon is not None:
+        button.setIcon(icon)
     layout.addWidget(button)
     return button
 
@@ -54,6 +107,13 @@ def addTextBox(layout, name):
     addLabel(layout, name)
 
     edit = QtWidgets.QTextEdit()
+    layout.addWidget(edit)
+    return edit
+
+def addLogBox(layout, name):
+    addLabel(layout, name)
+
+    edit = QLogWidget()
     layout.addWidget(edit)
     return edit
 

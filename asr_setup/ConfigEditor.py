@@ -10,7 +10,8 @@ import sys
 import time
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
-from . import gui_helpers
+import qtawesome as qta
+from asr_setup import gui_helpers
 import sounddevice as sd
 
 
@@ -28,9 +29,12 @@ class Config:
     device = ""
     channels = [1, 2, 3]
     samplerate = 9600
-    channel_latency = [0, 0, 0, 0]
+    channel_latency = [0., 0., 0., 0.]
     profile_loudspeaker_noise = ""
     profile_loudspeaker_burst = ""
+
+    recordingrate = 10000
+    recording_device = "Dev2"
 
     def load(self, filename):
         with open(filename, "r") as fp:
@@ -66,7 +70,8 @@ class Config:
             if isinstance(old_value, int):
                 setattr(self, key, int(value))
             elif isinstance(old_value, list):
-                setattr(self, key, [v.strip() for v in value.split(",")])
+                tp = type(old_value[0])
+                setattr(self, key, [tp(v.strip()) for v in value.split(",")])
             else:
                 setattr(self, key, value)
 
@@ -86,7 +91,7 @@ class Config:
             widget.setValue(int(self.getValue(attr)))
             widget.valueChanged.connect(lambda text: self.setValue(attr, text))
         if isinstance(widget, QtWidgets.QComboBox):
-            indexCombo = widget.findText(self.getValue(attr, index))
+            indexCombo = widget.findText(str(self.getValue(attr, index)))
             if indexCombo >= 0:
                 widget.setCurrentIndex(indexCombo)
             else:
@@ -98,6 +103,7 @@ class ConfigEditor(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__()
+        self.parent = parent
         self.setWindowTitle("Acoustic Startle Response - Configuration")
 
         layout_main = QtWidgets.QVBoxLayout(self)
@@ -137,7 +143,7 @@ class ConfigEditor(QtWidgets.QWidget):
 
         layout_buttons = QtWidgets.QHBoxLayout()
         layout_main.addLayout(layout_buttons)
-        self.button_save = gui_helpers.addPushButton(layout_buttons, "Save", self.save)
+        self.button_save = gui_helpers.addPushButton(layout_buttons, "Save", self.save, icon=qta.icon("fa.save"))
         self.button_save = gui_helpers.addPushButton(layout_buttons, "Cancel", self.close)
         self.selectDevice()
 
@@ -145,8 +151,12 @@ class ConfigEditor(QtWidgets.QWidget):
         self.config.connect(self.channel_noise, "channels", 1)
         self.config.connect(self.channel_burst, "channels", 2)
 
+        layout_main.addStretch()
+
     def save(self):
         self.config.save("config.txt")
+        if self.parent:
+            self.parent.settingsUpdated.emit()
 
     def selectDevice(self):
         device_name = self.input_devices.currentText()

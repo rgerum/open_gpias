@@ -10,12 +10,13 @@ Welcome to the ASR-Setup Documentation
 ASR-Setup is a program written in the Python programming language.
 
 .. toctree::
-   :caption: Contents
-   :maxdepth: 2
+    :caption: Contents
+    :maxdepth: 2
 
-   installation
-   hardware
-   signal
+    installation
+    hardware
+    ensambling_setup
+    signal
 
 Note
 ----

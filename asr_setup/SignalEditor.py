@@ -10,6 +10,7 @@ import sys
 import time
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
+import qtawesome as qta
 from asr_setup import gui_helpers, soundSignal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -59,6 +60,18 @@ class SignalEditor(QtWidgets.QWidget):
             self.input_protocol_file = gui_helpers.addFileChooser(layout_main, "Protocol file:", "", "byteType (*_HEARINGTHRESHOLD.npy *_TURNER.npy *_TURNER_AND_HEARINGTHRESHOLD.npy)")
             self.input_protocol_file.textEdited.connect(self.updateProtocolFile)
 
+        layout_navigate = QtWidgets.QHBoxLayout(self)
+        layout_main.addLayout(layout_navigate)
+        gui_helpers.addPushButton(layout_navigate, "", self.navigateLeft, icon=qta.icon("fa.arrow-left"))
+        self.label_title = QtWidgets.QSpinBox()
+        self.label_title.setSuffix(" / 0")
+        self.label_title.setPrefix("Trial ")
+        self.label_title.setRange(0, 0)
+        self.label_title.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_title.valueChanged.connect(self.plotOutputSignal)
+        layout_navigate.addWidget(self.label_title)
+        gui_helpers.addPushButton(layout_navigate, "", self.navigateRight, icon=qta.icon("fa.arrow-right"))
+
         self.figure = plt.figure("signal")
         self.canvas = FigureCanvas(self.figure)
         self.toolbar = NavigationToolbar(self.canvas, self)
@@ -71,6 +84,8 @@ class SignalEditor(QtWidgets.QWidget):
         self.ax3 = self.figure.add_subplot(3, 1, 3, sharex=self.ax1)
         self.axes = [self.ax1, self.ax2, self.ax3]
 
+        self.preparePlot()
+
         self.signal = soundSignal.Signal(None)
         self.play_list_index = 0
 
@@ -80,6 +95,12 @@ class SignalEditor(QtWidgets.QWidget):
         if self.protocol is None:
             return False, "No valid protocol file loaded."
         return True, "Protocol with %d runs loaded" % len(self.protocol)
+
+    def navigateLeft(self):
+        self.label_title.stepDown()
+
+    def navigateRight(self):
+        self.label_title.stepUp()
 
     def updateProtocolFile(self):
         self.protocol = None
@@ -120,6 +141,8 @@ class SignalEditor(QtWidgets.QWidget):
             raise RuntimeError
 
         self.protocol = protocol
+        self.label_title.setRange(1, len(self.protocol))
+        self.label_title.setSuffix(" / %d" % len(self.protocol))
 
         self.play_list_index = 0
         header = ["noiseIDX", "noiseGapIDX", "noiseFreqMinIDX", "noiseFreqMaxIDX", "preStimSPL_IDX", "preStimFreqIDX",
@@ -133,7 +156,7 @@ class SignalEditor(QtWidgets.QWidget):
             self.parent.settingsUpdated.emit()
 
     def plotOutputSignal(self):
-        thisKonfig = self.protocol[self.play_list_index]
+        thisKonfig = self.protocol[self.label_title.value()]
         noise = thisKonfig[noiseIDX]
         noiseGap = thisKonfig[noiseGapIDX]
         noiseFreqMin = thisKonfig[noiseFreqMinIDX]
@@ -148,17 +171,24 @@ class SignalEditor(QtWidgets.QWidget):
                                                         doGap=noiseGap)
         else:
             matrixToPlay, result = self.signal.asrPrepuls(preStimFreq, preStimAtten, ISI, prepulse=preStimAtten >= 0)
-        for ax in self.axes:
-            ax.cla()
+
         x = np.arange(matrixToPlay.shape[0]) / self.signal.SAMPLE_RATE
         x = x - x[-1]
+        for index, i in enumerate([0, 2, 3]):
+            self.plots[index].set_data(x, matrixToPlay[:, i])
+            self.axes[index].set_xlim(x[-1]-1, x[-1])
+            self.axes[index].set_ylim(-np.max(np.abs(matrixToPlay[:, i]))*1.1, np.max(np.abs(matrixToPlay[:, i]))*1.1)
+        self.canvas.draw()
+
+    def preparePlot(self):
+        for ax in self.axes:
+            ax.cla()
         colors = ["C0", "C2", "C3"]
+        self.plots = []
         for index, i in enumerate([0, 2, 3]):
             ax = self.axes[index]
-            if index == 0:
-                ax.set_title("Run %d/%d" % (self.play_list_index+1, len(self.protocol)))
-            ax.plot(x, matrixToPlay[:, i], color=colors[index])
-            ax.set_xlim(x[-1]-1, x[-1])
+            p1, = ax.plot([0, 0], [0, 0], color=colors[index])
+            self.plots.append(p1)
             ax.grid(True)
         self.ax1.set_ylabel("trigger pulse")
         self.ax2.set_ylabel("pre-pulse")
@@ -169,11 +199,9 @@ class SignalEditor(QtWidgets.QWidget):
     def keyPressEvent(self, event):
         print(event.key())
         if event.key() == QtCore.Qt.Key_A:
-            self.play_list_index = max(self.play_list_index - 1, 0)
-            self.plotOutputSignal()
+            self.navigateLeft()
         if event.key() == QtCore.Qt.Key_D:
-            self.play_list_index = min(self.play_list_index + 1, self.protocol.shape[0] - 1)
-            self.plotOutputSignal()
+            self.navigateRight()
 
     def processSignal(self, text):
         output = np.zeros((0))

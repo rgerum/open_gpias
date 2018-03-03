@@ -20,23 +20,11 @@ import ctypes
 from .soundSignal import Signal
 
 
-# Indices to access the config array
-# Need To match indices of BackendPlaylist
-noiseIDX = 0
-noiseGapIDX = 1
-noiseFreqMinIDX = 2
-noiseFreqMaxIDX = 3
-preStimAttenIDX = 4
-preStimFreqIDX = 5
-ISIIDX = 6
-noiseTimeIDX = 7
-
-
 class Measurement(QtCore.QObject):
-    finished = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject')
-    backup = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject')
-    plot_data = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject')
-    update_timer = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject')
+    trial_finished = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    measurement_finished = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject')
+    error = QtCore.Signal(str)
+
     stopped = QtCore.Signal()
     paused = QtCore.Signal()
     resumed = QtCore.Signal()
@@ -58,105 +46,92 @@ class Measurement(QtCore.QObject):
         """  runs the thread to start the ASR-measurements """
         self.protocol = self.protocolWidget.protocol
 
-        # all data measures for this measurement, if you want to increase the
-        # measurement sample rate you might consider changing this to only
-        # containing the recent measurement. Be careful to change this in
-        # the hole code!
-        all_data = np.zeros((len(self.protocol), 1 + int(6 * self.config.recordingrate * 16.5)))
-
-        # extracted measured Data of the form [index of konfigarray][channel][data]
+        # extracted measured data of the form [trial number][channel][data]
         data_extracted = np.zeros((len(self.protocol), 7, int(0.95 * self.config.recordingrate) + 2))
-        self.update_timer.emit(self.protocol, -1)
+
+        # notify main thread, that the measurement will be started
+        self.trial_finished.emit(data_extracted, -1, self.protocol)
 
         # loop over all ASR measurements
         for idxStartle in range(len(self.protocol)):
-            print("startleidx: " + str(idxStartle))
-            # handle pausing, stopping and resuming
-            if self.pause:
-                self.paused.emit()  # notify main thread
+            print("startle idx: " + str(idxStartle))
 
-                while self.pause:
-                    if self.stop:
-                        self.stop = False
-                        self.stopped.emit()
-                        return
-                    time.sleep(0.1)
-                self.resumed.emit()
-
-            if self.stop:
-                self.stopped.emit()
+            # check if the main thread has scheduled the measurement to stop
+            if self.check_stop():
                 return
 
-            thisKonfig = self.protocol[idxStartle]
-            stimulation_duration = self.play_stimulation(thisKonfig) + 1000
+            # get the current trial
+            this_trial = self.protocol[idxStartle]
 
-            # perform the measurement of the Data
-            # 1000 ms is the buffer that is needed usually because sd.play doesn't start the sound immediately
-            # the buffer that is needed may depend on the soundcard you use
-            data = self.perform_measurement(stimulation_duration + 1000)
-            all_data[idxStartle][0] = len(data)
-            all_data[idxStartle][1:len(data) + 1] = data
-            data_extracted, foundThreshold = self.extract_data(data, data_extracted, idxStartle)
-            # save which measurement was performed
-            data_extracted[idxStartle][6][1:9] = thisKonfig
+            # play the trial
+            stimulation_duration = self.play_stimulation(this_trial)
 
-            # save a backup in case measurement stops or program crashes
-            self.backup.emit(data_extracted, all_data)
+            # record the sound and acceleration
+            data = self.perform_nidaq_recording(stimulation_duration)
 
-            # plot the measured data
-            self.plot_data.emit(data_extracted, idxStartle)
+            # post-process the recorded data
+            data_extracted, found_threshold = self.extract_data(data, data_extracted, idxStartle, this_trial)
 
-            self.update_timer.emit(self.protocol, idxStartle)
+            # notify the main thread that the trial is finished
+            self.trial_finished.emit(data_extracted, idxStartle, self.protocol)
 
-            # if the stimulation crashes or the sound card isn't active there
-            # will be no trigger. This is absolutely not supposed to happen
-            if not foundThreshold:
-                print("there was no trigger in measurement number " + str(idxStartle))
         print('measurement completed')
-        # Inform main thread and send data
-        self.finished.emit(data_extracted, all_data)
+        # notify the main thread that the measurement is finished
+        self.measurement_finished.emit(data_extracted, None)
 
-    def play(self, matrixToPlay):
-        sd.play(matrixToPlay)#, samplerate=SAMPLE_RATE, device='Speakers (ASUS Essence STX II Audio)')
+    def check_stop(self):
+        # handle pausing, stopping and resuming
+        if self.pause:
+            self.paused.emit()  # notify main thread
 
-    def play_stimulation(self, thisKonfig):
+            while self.pause:
+                if self.stop:
+                    self.stop = False
+                    self.stopped.emit()
+                    return True
+                time.sleep(0.1)
+            self.resumed.emit()
+
+        if self.stop:
+            self.stopped.emit()
+            return True
+
+        return False
+
+    def play(self, matrix_to_play):
+        try:
+            sd.play(matrix_to_play, samplerate=self.config.samplerate, device=self.config.device)
+        except sd.PortAudioError as err:
+            self.error.emit(str(err))
+
+    def play_stimulation(self, this_trial):
         """
         play Stimulation sound and trigger returns time the stimulation plays in ms
         careful this is the time the stimulation needs in ms, there is no buffer included
         the needed buffer may depend on the soundcard
         """
-        print(thisKonfig)
-        # should never occur if the konfig array is loaded from a correctly generated konfig file
-        # but is no big hold up
-        if len(thisKonfig) != 8:
-            raise RuntimeError("Konfig array is wrong, please generate a new one")
-        noise = thisKonfig[noiseIDX]
-        noiseGap = thisKonfig[noiseGapIDX]
-        noiseFreqMin = thisKonfig[noiseFreqMinIDX]
-        noiseFreqMax = thisKonfig[noiseFreqMaxIDX]
-        preStimAtten = thisKonfig[preStimAttenIDX]
-        preStimFreq = thisKonfig[preStimFreqIDX]
-        ISI = thisKonfig[ISIIDX]
-        noiseTime = thisKonfig[noiseTimeIDX]
-        if noise:
-            matrixToPlay, result = self.signal.gpiasGap(noiseFreqMin, noiseFreqMax, noiseTime, noise_type=noise, doGap=noiseGap)
-        else:
-            matrixToPlay, result = self.signal.asrPrepuls(preStimFreq, preStimAtten, ISI, prepulse=preStimAtten >= 0)
-        self.play(matrixToPlay)
-        return result
+        matrix_to_play, duration = self.signal.getSignalFromProtocol(this_trial)
+        self.play(matrix_to_play)
+        # perform the measurement of the data
+        # 1000 ms is the buffer that is needed usually because sd.play doesn't start the sound immediately
+        # the buffer that is needed may depend on the soundcard you use
+        return duration + 1000
 
     def checkNiDAQ(self):
+        # check if a task can be created
         try:
             analog_input = daq.Task()
         except NameError:
             return False, "niDAQmx library not found!"
 
+        # check if a channel can be set
         analog_input.CreateAIVoltageChan(self.config.recording_device + b'/ai0:5', b'', daq.DAQmx_Val_Cfg_Default,
                                          -10., 10., daq.DAQmx_Val_Volts, None)
         analog_input.CfgSampClkTiming(b'', self.config.recordingrate, daq.DAQmx_Val_Rising, daq.DAQmx_Val_FiniteSamps, 1000)
+        # return the status
         return True, "niDAQmx device %s ready to record channels ai0-5 at %d Hz" % (self.config.recording_device, self.config.recordingrate)
 
-    def perform_measurement(self, duration_ms):
+    def perform_nidaq_recording(self, duration_ms):
         """
         performs the measurement using a NI-DAQ card
         it performs the measurement for duration_ms milliseconds
@@ -176,9 +151,9 @@ class Measurement(QtCore.QObject):
         # channel ai0: x-Data
         # channel ai1: y-Data
         # channel ai2: z-Data
-        # channel ai3: Triggerpulse
-        # channel ai4: Prestim
-        # channel ai5: noiseburst
+        # channel ai3: trigger pulse
+        # channel ai4: pre-stimulus
+        # channel ai5: startle-stimulus
 
         analog_input.CreateAIVoltageChan(self.config.recording_device+b'/ai0:5', b'', daq.DAQmx_Val_Cfg_Default, -10., 10., daq.DAQmx_Val_Volts,
                                          None)
@@ -194,7 +169,7 @@ class Measurement(QtCore.QObject):
         analog_input.StopTask()
         return self.data
 
-    def extract_data(self, data, data_extracted, idxStartle):
+    def extract_data(self, data, data_extracted, idxStartle, this_trial):
         """
         update matrix which holds the extracted Data
         data is all data
@@ -204,17 +179,23 @@ class Measurement(QtCore.QObject):
         data = data.reshape(6, len(data)//6)
         thresh = 0.2  # threshold für Trigger
 
+        # save which measurement was performed
+        data_extracted[idxStartle][6][1:9] = this_trial
+
         # find the first frame where the trigger is higher than the threshold
         # data[3] is the threshold channel
         try:
             i = np.where(data[3] > thresh)[0][0]
         except IndexError:
+            self.error.emit("No trigger in measurement.")
             # no trigger pulse found
             return data_extracted, False
 
         # trigger pulse too early
         if i < 0.5 * self.config.recordingrate:
-            raise RuntimeError("There was a trigger in the first 0.5 seconds of the data, this is not supposed to happen! check konfig array and trigger channel(ai03)")
+            self.error.emit("No trigger in measurement.")
+            raise RuntimeError("There was a trigger in the first 0.5 seconds of the data, this is not supposed to "
+                               "happen! Check config array and trigger channel (ai03).")
 
         # eliminate offset by taking the mean of the data without stimuli
         # and subtract it from all the data before plotting

@@ -12,6 +12,19 @@ import scipy.signal
 import math
 import scipy
 import sounddevice as sd
+import datetime
+
+
+# Indices to access the config array
+# Need To match indices of BackendPlaylist
+noiseIDX = 0
+noiseGapIDX = 1
+noiseFreqMinIDX = 2
+noiseFreqMaxIDX = 3
+preStimAttenIDX = 4
+preStimFreqIDX = 5
+ISIIDX = 6
+noiseTimeIDX = 7
 
 
 class Signal:
@@ -450,6 +463,31 @@ class Signal:
             output[:, channel] = signal
         # return the joined output
         return output
+
+    def getSignalFromProtocol(self, this_trial):
+        # should never occur if the config array is loaded from a correctly generated config file
+        # but is no big hold up
+        if len(this_trial) != 8:
+            raise RuntimeError("Config array is wrong, please generate a new one")
+        noise = this_trial[noiseIDX]
+        noiseGap = this_trial[noiseGapIDX]
+        noiseFreqMin = this_trial[noiseFreqMinIDX]
+        noiseFreqMax = this_trial[noiseFreqMaxIDX]
+        preStimSPL = this_trial[preStimAttenIDX]
+        preStimFreq = this_trial[preStimFreqIDX]
+        ISI = this_trial[ISIIDX]
+        noiseTime = this_trial[noiseTimeIDX]
+        if noise:
+            return self.gpiasGap(noiseFreqMin, noiseFreqMax, noiseTime, noise_type=noise, doGap=noiseGap)
+        else:
+            return self.asrPrepuls(preStimFreq, preStimSPL, ISI, prepulse=preStimSPL >= 0)
+
+    def getProtocolDuration(self, protocol, idx):
+        noisetimes = protocol[idx:, noiseTimeIDX]
+        ISIs = protocol[idx:, ISIIDX]
+        msleft = np.sum(ISIs) + np.sum(noisetimes) + 2000 * len(ISIs)
+        return datetime.timedelta(seconds=msleft / 1000)
+
 
     def gpiasGap(self, noiseFreqMin, noiseFreqMax, noiseTime, noise_type=1, doGap=True):
         """

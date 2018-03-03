@@ -51,16 +51,20 @@ class measurementGui(QtWidgets.QWidget):
         layout2 = QtWidgets.QHBoxLayout()
         layout1.addLayout(layout2)
 
+        # Metadata
         layout_properties = QtWidgets.QVBoxLayout()
         layout2.addLayout(layout_properties)
+        # experimenter
         self.textEdit_Experimenter = gui_helpers.addLineEdit(layout_properties, "Experimenter:", "Experimenter")
-        self.textEdit_Mousname = gui_helpers.addLineEdit(layout_properties, "Animal name:", "Mouse")
-        self.textEdit_status = gui_helpers.addLineEdit(layout_properties, "Animal status:", "pre or post")
-
         self.textEdit_Experimenter.textEdited.connect(self.statusUpdated)
+        # animal name
+        self.textEdit_Mousname = gui_helpers.addLineEdit(layout_properties, "Animal name:", "Mouse")
         self.textEdit_Mousname.textEdited.connect(self.statusUpdated)
+        # animal status
+        self.textEdit_status = gui_helpers.addLineEdit(layout_properties, "Animal status:", "pre or post")
         self.textEdit_status.textEdited.connect(self.statusUpdated)
 
+        # status display
         self.status_bar = gui_helpers.QStatusBar(dict(Soundcard=False, NiDAQ=False, Protocol=False, Metadata=False), layout_properties)
         layout_properties.addStretch()
 
@@ -89,25 +93,48 @@ class measurementGui(QtWidgets.QWidget):
         layout_buttons = QtWidgets.QHBoxLayout()
         layout1.addLayout(layout_buttons)
 
+        # measurement control buttons
         self.startButton = gui_helpers.addPushButton(layout_buttons, "Start Measurement", self.startStimulation, icon=qta.icon("fa.play"))
         self.pauseButton = gui_helpers.addPushButton(layout_buttons, "Pause Measurement", self.pause, icon=qta.icon("fa.pause"))
         self.stopButton = gui_helpers.addPushButton(layout_buttons, "Stop Measurement", self.stop, icon=qta.icon("fa.stop"))
 
-        self.pauseButton.setEnabled(False)
-        self.stopButton.setEnabled(False)
+        self.setButtonStatus(0)
 
         self.measurement_thread = StimulusBackend.Measurement(protocol, config)
-        self.measurement_thread.plot_data.connect(self.plot_it)
-        self.measurement_thread.backup.connect(self.save_backup)
-        self.measurement_thread.finished.connect(self.m_finished)
+        self.measurement_thread.trial_finished.connect(self.trialFinishedEvent)
+        self.measurement_thread.measurement_finished.connect(self.m_finished)
         self.measurement_thread.paused.connect(self.m_paused)
         self.measurement_thread.stopped.connect(self.m_stopped)
         self.measurement_thread.resumed.connect(self.m_resumed)
-        self.measurement_thread.update_timer.connect(self.update_timer)
+
+        self.measurement_thread.error.connect(self.textEdit_out.addLog)
 
         self.statusUpdated()
 
         self.textEdit_out.addLog("Program started")
+
+    def trialFinishedEvent(self, data_extracted, idxStartle, protocol):
+        self.plot_it(data_extracted, idxStartle)
+        self.save_backup(data_extracted)
+        self.update_timer(protocol, idxStartle)
+
+    def setButtonStatus(self, status):
+        if status == 0:  # no measurement
+            self.startButton.setEnabled(True)
+            self.pauseButton.setEnabled(False)
+            self.stopButton.setEnabled(False)
+        if status == 1:  # running measurement
+            self.startButton.setEnabled(False)
+            self.pauseButton.setEnabled(True)
+            self.stopButton.setEnabled(True)
+        if status == 2:  # pause measurement
+            self.startButton.setEnabled(False)
+            self.pauseButton.setEnabled(True)
+            self.stopButton.setEnabled(False)
+        if status == -1:  # waiting to stop or pause
+            self.startButton.setEnabled(False)
+            self.pauseButton.setEnabled(False)
+            self.stopButton.setEnabled(False)
 
     def statusUpdated(self):
         status = dict(Soundcard=self.measurement_thread.signal.checkSettings(),
@@ -120,28 +147,26 @@ class measurementGui(QtWidgets.QWidget):
         """
         Callback function for stop button, stops and resets measurement
         """
-        self.pauseButton.setEnabled(False)
-        self.startButton.setEnabled(False)
+        self.setButtonStatus(-1)
 
-        if self.measurement_thread is not None:
-            #self.textEdit_out.setText('Stopping Measurement. Please wait') # TODO
-            self.measurement_thread.stop = True
-            self.measurement_thread.pause = False  # In case it was previously paused
+        #self.textEdit_out.setText('Stopping Measurement. Please wait') # TODO
+        self.measurement_thread.stop = True
+        self.measurement_thread.pause = False  # In case it was previously paused
         # self.timer.stop()
 
     def pause(self):  # pause button pushed
         """
         Callback function for pause button
         """
-        if self.measurement_thread is not None:
-            if self.measurement_thread.pause:
-                self.pauseButton.setText("Pause")
-                self.measurement_thread.pause = False
-            else:
-                self.pauseButton.setText("Resume")
-                self.pauseButton.setEnabled(False)
-                #self.textEdit_out.setText('Pausing Measurement. Please wait') # TODO
-                self.measurement_thread.pause = True
+        if self.measurement_thread.pause:
+            self.pauseButton.setText("Pause")
+            self.measurement_thread.pause = False
+            self.setButtonStatus(-1)
+        else:
+            self.pauseButton.setText("Resume")
+            self.setButtonStatus(-1)
+            #self.textEdit_out.setText('Pausing Measurement. Please wait') # TODO
+            self.measurement_thread.pause = True
 
     def startStimulation(self):
         """
@@ -163,87 +188,70 @@ class measurementGui(QtWidgets.QWidget):
             return
 
         # If the measurement is paused, resume it
-        if self.measurement_thread is not None and self.measurement_thread.pause:
+        if self.measurement_thread.pause:
             self.measurement_thread.pause = False
             return
 
         # reset this to notify save_data
         self.timeString = ""
 
-        #self.textEdit_out.clear()  # clears output text
-        self.startButton.setEnabled(False)
-        self.stopButton.setEnabled(True)
-        self.pauseButton.setEnabled(True)
+        self.setButtonStatus(1)
 
         self.pauseButton.setText("Pause")
 
         self.textEdit_out.addLog("Measurement started")
 
         Thread(target=self.measurement_thread.run_thread, args=()).start()  # start Measurement
-        time.sleep(1)
 
-    def update_timer(self, konfigArray, idx):
-        self.progressBar.setRange(0, len(konfigArray))
+    def update_timer(self, protocol, idx):
+        self.progressBar.setRange(0, len(protocol))
         self.progressBar.setValue(idx+1)
         if idx >= 0:
-            digits = len(str(len(konfigArray)))
-            self.textEdit_out.addLog(("Trial %"+str(digits)+"d/%d finished.") % (idx+1, len(konfigArray)))
-        min_left = self.calculate_time_left(konfigArray, idx)
-        self.labelRemaining.setText("Remaining time: %d min" % min_left)
+            digits = len(str(len(protocol)))
+            self.textEdit_out.addLog(("Trial %"+str(digits)+"d/%d finished.") % (idx+1, len(protocol)))
+        # print the remaini
+        self.labelRemaining.setText("Remaining time: %s" % str(self.measurement_thread.signal.getProtocolDuration(protocol, idx)).split(".")[0])
 
-    def calculate_time_left(self, konfigArray, idx):
-        noisetimes = konfigArray[idx:, StimulusBackend.noiseTimeIDX]
-        ISIs = konfigArray[idx:, StimulusBackend.ISIIDX]
-        msleft = np.sum(ISIs) + np.sum(noisetimes) + 2000 * len(ISIs)
-        return int(msleft / (1000 * 60)) + 1
-
-    def save_backup(self, data_extracted, all_data):
+    def save_backup(self, data_extracted):
+        self.save_data(data_extracted, finished=False)
+        return
         if self.backup_plot_count >= 10:
-            self.save_data(data_extracted, all_data, finished=False)
+            self.save_data(data_extracted, finished=False)
             self.backup_plot_count = 0
         else:
             self.backup_plot_count += 1
 
     def plot_it(self, data, idx):
-        # provide teh plot with the data
+        """ provide the plot with the data """
         self.plot.setData(data[idx, :, :], idx)
         data[idx][6][0] = self.plot.get_max()
 
     def m_finished(self, data_extracted, all_data):
         self.save_data(data_extracted, all_data)
         self.textEdit_out.addLog("Measurement finished")
-        self.startButton.setEnabled(True)
-        self.stopButton.setEnabled(False)
-        self.pauseButton.setEnabled(False)
-        self.measurement_thread = None
-        self.measurement_thread = None
+        self.setButtonStatus(0)
         QtWidgets.QMessageBox.information(self, 'Finished', 'Measurement Completed')
 
     def m_paused(self):
         # self.timer.stop()
-        self.startButton.setEnabled(False)
-        self.pauseButton.setEnabled(True)
+        self.setButtonStatus(2)
         self.textEdit_out.addLog("Measurement paused")
         QtWidgets.QMessageBox.information(self, 'Paused', 'The door can be opened.')
 
     def m_resumed(self):
-        self.pauseButton.setEnabled(True)
-        self.textEdit_out.setText('')
+        self.setButtonStatus(1)
+        self.textEdit_out.addLog("Measurement resumed")
 
     def m_stopped(self):
         self.textEdit_out.addLog("Measurement stopped")
-        self.startButton.setEnabled(True)
-        self.pauseButton.setEnabled(False)
-        self.stopButton.setEnabled(False)
-        if self.measurement_thread is not None:
-            self.measurement_thread.pause = False  # reset in case pause button was pressed
+        self.setButtonStatus(0)
+        self.measurement_thread.pause = False  # reset in case pause button was pressed
         QtWidgets.QMessageBox.information(self, 'Stopped', 'Measurement stopped.')
-        self.measurement_thread = None
         if self.shutDown:
             self.shutDown = 2
             self.close()
 
-    def save_data(self, data_extracted, all_data, finished=True):
+    def save_data(self, data_extracted, finished=True):
 
         if self.timeString == "":
             self.timeString = time.strftime("%Y-%m-%d_%H-%M")
@@ -318,7 +326,7 @@ class measurementGui(QtWidgets.QWidget):
                 self.thisplot.esc()  # MS
             return
 
-        if self.measurement_thread is not None:
+        if self.measurement_thread is not None:  # TODO check running
             msg = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning, "warning",
                               "Sind sie sich sicher, dass Sie die Messung schließen" +
                               " möchten? Es ist nicht möglich die Messung zu einem" +
@@ -386,25 +394,3 @@ class measurementGui(QtWidgets.QWidget):
             return False, "\n".join(errors)
         # if not, everything is fine
         return True, "Mouse %s measured by %s in state %s" % (self.textEdit_Mousname.text(), self.textEdit_Experimenter.text(), self.textEdit_status.text())
-
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-    ex = measurementGui()
-    ex.show()
-    app.exec_()
-
-
-def test():
-    app = QtWidgets.QApplication(sys.argv)
-    ex = measurementGui()
-    ex.textEdit_Experimenter.setText("Achim")
-    ex.textEdit_Mousname.setText("TestMouse")
-    ex.lineEdit_Path.setText(r"GUI Playlist/ein test_HEARINGTHRESHOLD.npy")
-    ex.textEdit_status.setText("pre10")
-    ex.show()
-    app.exec_()
-
-
-if __name__ == '__main__':
-    main()

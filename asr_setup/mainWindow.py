@@ -19,6 +19,7 @@ class mainWindow(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__()
         self.setWindowTitle("OpenGPIAS")
+        self.setWindowIcon(QtGui.QIcon("icon.ico"))
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
 

@@ -80,6 +80,10 @@ class QLogWidget(QtWidgets.QTextEdit):
     def addLog(self, status):
         self.log_texts += str(datetime.datetime.now()).split(".")[0]+" - "+status+"\n"
         self.setText(self.log_texts)
+        # scroll down
+        c = self.textCursor()
+        c.movePosition(QtGui.QTextCursor.End)
+        self.setTextCursor(c)
 
 
 def addPushButton(layout, name, function, icon=None):

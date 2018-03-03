@@ -21,5 +21,6 @@ setup(name='asr_setup',
                         'scipy',
                         'matplotlib',
                         'qtpy',
-                        'PyDAQmx'],
+                        'PyDAQmx',
+                        'pandas'],
       include_package_data=True)

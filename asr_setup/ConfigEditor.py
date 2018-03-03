@@ -28,7 +28,7 @@ def file_iter(file):
 class Config:
     device = ""
     channels = [1, 2, 3]
-    samplerate = 9600
+    samplerate = 96000
     channel_latency = [0., 0., 0., 0.]
     profile_loudspeaker_noise = ""
     profile_loudspeaker_burst = ""
@@ -118,7 +118,10 @@ class ConfigEditor(QtWidgets.QWidget):
                 device_names.append(device["name"])
 
         self.config = Config()
-        self.config.load("config.txt")
+        try:
+            self.config.load("config.txt")
+        except FileNotFoundError:
+            pass
         print(self.config)
 
         self.input_devices = gui_helpers.addComboBox(layout_main, "Sounddevice:", device_names)

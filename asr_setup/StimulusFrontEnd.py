@@ -54,7 +54,7 @@ class measurementGui(QtWidgets.QWidget):
         layout_properties = QtWidgets.QVBoxLayout()
         layout2.addLayout(layout_properties)
         self.textEdit_Experimenter = gui_helpers.addLineEdit(layout_properties, "Experimenter:", "Experimenter")
-        self.textEdit_Mousname = gui_helpers.addLineEdit(layout_properties, "Animal Name:", "Mouse")
+        self.textEdit_Mousname = gui_helpers.addLineEdit(layout_properties, "Animal name:", "Mouse")
         self.textEdit_status = gui_helpers.addLineEdit(layout_properties, "Animal status:", "pre or post")
 
         self.textEdit_Experimenter.textEdited.connect(self.statusUpdated)
@@ -66,7 +66,20 @@ class measurementGui(QtWidgets.QWidget):
 
         layout_properties2 = QtWidgets.QVBoxLayout()
         layout2.addLayout(layout_properties2)
-        self.lcdNumber = gui_helpers.addLCDNumber(layout_properties2, "Measurement status:")
+
+        # Label
+        self.labelStatus = QtWidgets.QLabel("Measurement status:")
+        layout_properties2.addWidget(self.labelStatus)
+
+        # Progress Bar
+        self.progressBar = QtWidgets.QProgressBar()
+        layout_properties2.addWidget(self.progressBar)
+        self.progressBar.setFormat("%v/%m")
+
+        # Remaining time
+        self.labelRemaining = QtWidgets.QLabel("Remaining time:")
+        layout_properties2.addWidget(self.labelRemaining)
+
         self.textEdit_out = gui_helpers.addLogBox(layout_properties2, "Output:")
         layout_properties2.addStretch()
 
@@ -170,25 +183,18 @@ class measurementGui(QtWidgets.QWidget):
         time.sleep(1)
 
     def update_timer(self, konfigArray, idx):
+        self.progressBar.setRange(0, len(konfigArray))
+        self.progressBar.setValue(idx+1)
         if idx >= 0:
             digits = len(str(len(konfigArray)))
             self.textEdit_out.addLog(("Trial %"+str(digits)+"d/%d finished.") % (idx+1, len(konfigArray)))
-        print("hallo1")
         min_left = self.calculate_time_left(konfigArray, idx)
-        print(2)
-        self.lcdNumber.display(min_left)
-        print(3)
+        self.labelRemaining.setText("Remaining time: %d min" % min_left)
 
     def calculate_time_left(self, konfigArray, idx):
-        print("hallo3")
-        print(StimulusBackend.noiseTimeIDX)
-        print(konfigArray)
-        print(idx)
         noisetimes = konfigArray[idx:, StimulusBackend.noiseTimeIDX]
         ISIs = konfigArray[idx:, StimulusBackend.ISIIDX]
-        print("hallo4")
         msleft = np.sum(ISIs) + np.sum(noisetimes) + 2000 * len(ISIs)
-        print("hallo5")
         return int(msleft / (1000 * 60)) + 1
 
     def save_backup(self, data_extracted, all_data):
@@ -210,7 +216,6 @@ class measurementGui(QtWidgets.QWidget):
         self.stopButton.setEnabled(False)
         self.pauseButton.setEnabled(False)
         self.measurement_thread = None
-        self.lcdNumber.display(0)
         self.measurement_thread = None
         QtWidgets.QMessageBox.information(self, 'Finished', 'Measurement Completed')
 
@@ -233,7 +238,6 @@ class measurementGui(QtWidgets.QWidget):
         if self.measurement_thread is not None:
             self.measurement_thread.pause = False  # reset in case pause button was pressed
         QtWidgets.QMessageBox.information(self, 'Stopped', 'Measurement stopped.')
-        self.lcdNumber.display(0)
         self.measurement_thread = None
         if self.shutDown:
             self.shutDown = 2

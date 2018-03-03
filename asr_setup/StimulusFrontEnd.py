@@ -170,6 +170,9 @@ class measurementGui(QtWidgets.QWidget):
         time.sleep(1)
 
     def update_timer(self, konfigArray, idx):
+        if idx >= 0:
+            digits = len(str(len(konfigArray)))
+            self.textEdit_out.addLog(("Trial %"+str(digits)+"d/%d finished.") % (idx+1, len(konfigArray)))
         print("hallo1")
         min_left = self.calculate_time_left(konfigArray, idx)
         print(2)

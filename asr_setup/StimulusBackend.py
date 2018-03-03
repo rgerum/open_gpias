@@ -66,7 +66,7 @@ class Measurement(QtCore.QObject):
 
         # extracted measured Data of the form [index of konfigarray][channel][data]
         data_extracted = np.zeros((len(self.protocol), 7, int(0.95 * self.config.recordingrate) + 2))
-        self.update_timer.emit(self.protocol, 0)
+        self.update_timer.emit(self.protocol, -1)
 
         # loop over all ASR measurements
         for idxStartle in range(len(self.protocol)):
@@ -96,7 +96,7 @@ class Measurement(QtCore.QObject):
             data = self.perform_measurement(stimulation_duration + 1000)
             all_data[idxStartle][0] = len(data)
             all_data[idxStartle][1:len(data) + 1] = data
-            data_extracted, foundThreshold = self.extract_data(data, data_extracted, self.fs_measurement, idxStartle)
+            data_extracted, foundThreshold = self.extract_data(data, data_extracted, idxStartle)
             # save which measurement was performed
             data_extracted[idxStartle][6][1:9] = thisKonfig
 

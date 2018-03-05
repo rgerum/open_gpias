@@ -4,10 +4,10 @@
    contain the root `toctree` directive.
 
 
-Welcome to the ASR-Setup Documentation
-======================================
+Welcome to the Open GPIAS Documentation
+=======================================
 
-ASR-Setup is a program written in the Python programming language.
+Open GPIAS is a program written in the Python programming language.
 
 .. toctree::
     :caption: Contents

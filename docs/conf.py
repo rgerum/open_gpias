@@ -65,7 +65,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'asr_setup'
+project = u'Open_GPIAS'
 copyright = u'2018, Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
 author = u'Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
 
@@ -246,7 +246,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'asr_setup.tex', u'ASR-Setup Documentation',
+  (master_doc, 'Open_GPIAS.tex', u'Open-GPIAS Documentation',
    u'Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum', 'manual'),
 ]
 
@@ -276,7 +276,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'asr_setup', u'ASR-Setup Documentation',
+    (master_doc, 'Open_GPIAS', u'Open GPIAS Documentation',
      [author], 1)
 ]
 
@@ -290,8 +290,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'asr_setup', u'ASR-Setup Documentation',
-   author, 'asr_setup', 'One line description of project.',
+  (master_doc, 'Open_GPIAS', u'Open GPIAS Documentation',
+   author, 'Open_GPIAS', 'One line description of project.',
    'Miscellaneous'),
 ]
 

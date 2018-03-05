@@ -1,5 +1,6 @@
 import os
 import sys
+import ctypes
 import time
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
@@ -13,13 +14,14 @@ from .ConfigEditor import ConfigEditor
 from .SignalEditor import SignalEditor
 from .StimulusFrontEnd import measurementGui
 
+
 class mainWindow(QtWidgets.QWidget):
     settingsUpdated = QtCore.Signal()
 
     def __init__(self, parent=None):
         super().__init__()
         self.setWindowTitle("OpenGPIAS")
-        self.setWindowIcon(QtGui.QIcon("icon.ico"))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), "icon.ico")))
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
@@ -37,18 +39,11 @@ class mainWindow(QtWidgets.QWidget):
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
+    # set an application id, so that windows properly stacks them in the task bar
+    if sys.platform[:3] == 'win':
+        myappid = 'schilling.opengpias'  # arbitrary string
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     ex = mainWindow()
-    ex.show()
-    app.exec_()
-
-
-def test():
-    app = QtWidgets.QApplication(sys.argv)
-    ex = mainWindow()
-    ex.textEdit_Experimenter.setText("Achim")
-    ex.textEdit_Mousname.setText("TestMouse")
-    ex.lineEdit_Path.setText(r"GUI Playlist/ein test_HEARINGTHRESHOLD.npy")
-    ex.textEdit_status.setText("pre10")
     ex.show()
     app.exec_()
 

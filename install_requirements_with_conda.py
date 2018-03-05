@@ -68,7 +68,7 @@ except (ImportError, ModuleNotFoundError):
     # if it did not manage to import itself with a backend, install pyqt5
     os.system("pip install pyqt5")
 
-# and finally install clickpoints usind no-dependencies
+# and finally install open_gpias usind no-dependencies
 os.system("pip install -e . --no-dependencies")
 
-print("Clickpoints installed (took %.2fs)" % (time.time()-start_time))
+print("open_gpias installed (took %.2fs)" % (time.time()-start_time))

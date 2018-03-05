@@ -11,7 +11,7 @@ import time
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
 import qtawesome as qta
-from asr_setup import gui_helpers, soundSignal
+from open_gpias import gui_helpers, soundSignal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt

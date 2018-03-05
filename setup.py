@@ -4,17 +4,17 @@
 from setuptools import setup
 
 
-setup(name='asr_setup',
+setup(name='open_gpias',
       version="0.9.0",
-      description='ASR-Setup to measure startle responses',
+      description='Open GPIAS to measure startle responses',
       url='https://bitbucket.org/randrian/asr_setup',
       license="GPLv3",
       author='Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum',
       author_email='richard.gerum@fau.de',
-      packages=['asr_setup'],
+      packages=['open_gpias'],
       entry_points={
-              'console_scripts': ['asr_setup=asr_setup.mainWindow:main'],
-              'gui_scripts': ['asr_setup_gui=asr_setup.mainWindow:main'],
+              'console_scripts': ['open_gpias=open_gpias.mainWindow:main'],
+              'gui_scripts': ['open_gpias_gui=open_gpias.mainWindow:main'],
           },
       #setup_requires=['numpy'],
       install_requires=['sounddevice',

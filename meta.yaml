@@ -7,7 +7,7 @@ build:
   preserve_egg_dir: True
   script: python setup.py install --single-version-externally-managed --record record.txt
   entry_points:
-    - asr_setup = asr_setup.StimulusFrontEnd:main
+    - asr_setup = asr_setup.mainWindow:main
 
 source:
     path: .

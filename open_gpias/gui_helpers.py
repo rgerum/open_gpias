@@ -74,6 +74,7 @@ class QLogWidget(QtWidgets.QTextEdit):
 
     def __init__(self, layout=None):
         super().__init__()
+        self.setReadOnly(True)
         if layout is not None:
             layout.addWidget(self)
 

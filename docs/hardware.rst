@@ -50,7 +50,7 @@ Sensor platform
 The sensor platform has to hold the animal at a fixed distance to the speakers. In addition, the animal has to be flexibly
 mounted to allow for measurable vibrations when the animal twitches in response to a startle stimulus.
 
-In out setup, we use a platform consiting of two plates. The upper plate has a mount for the animal restrainer and is
+In out setup, we use a platform consisting of two plates. The upper plate has a mount for the animal restrainer and is
 mounted on the lower plate by four springs and two rubber foam blocks for damping. Underneath the upper plate, an acceleration
 sensor (ADXL 335 on a GY 61 board) is attached. The lower plate is screwed to the vibration isolated table.
 

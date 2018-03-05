@@ -18,16 +18,6 @@ from . import gui_helpers
 from .MeasurementPlot import plotWidget
 
 
-# add exception hook hack to prevent from python just crashing without throwing an exception, which occurs on some Qt5 installations
-def my_excepthook(type, value, tback):
-    sys.__excepthook__(type, value, tback)
-sys.excepthook = my_excepthook
-
-
-Playlist_Directory = "D:/Users/Setup/Desktop/Playlists"
-Measurement_Directory = "D:/Users/Setup/Desktop/Messungen"
-Backup_Measurement_Directory = "D:/Users/Setup/Backup_messungen"
-
 
 class measurementGui(QtWidgets.QWidget):
     timeString = ""
@@ -42,9 +32,8 @@ class measurementGui(QtWidgets.QWidget):
         super().__init__()
         self.setWindowTitle("Acoustic Startle Response - Measure")
         self.parent = parent
+        self.config = config
         self.parent.settingsUpdated.connect(self.statusUpdated)
-
-        self.dir_measurements = Measurement_Directory
 
         layout1 = QtWidgets.QVBoxLayout(self)
 
@@ -112,6 +101,35 @@ class measurementGui(QtWidgets.QWidget):
         self.statusUpdated()
 
         self.textEdit_out.addLog("Program started")
+
+        data = np.load(r"D:\Repositories\open_gpias\open_gpias\Achim_LS01_pre__turner_and_threshold_2018.npy")
+
+        self.plt_index = 10
+        self.plot_it(data, self.plt_index)
+
+        layout_navigate = QtWidgets.QHBoxLayout(self)
+        layout_properties.addLayout(layout_navigate)
+        gui_helpers.addPushButton(layout_navigate, "", self.navigateLeft, icon=qta.icon("fa.arrow-left"))
+        self.label_title = QtWidgets.QSpinBox()
+        self.label_title.setSuffix(" / 0")
+        self.label_title.setPrefix("Trial ")
+        self.label_title.setRange(0, 400)
+        self.label_title.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_title.valueChanged.connect(self.plotOutputSignal)
+        layout_navigate.addWidget(self.label_title)
+        gui_helpers.addPushButton(layout_navigate, "", self.navigateRight, icon=qta.icon("fa.arrow-right"))
+
+    def navigateLeft(self):
+        self.plt_index -= 1
+        self.label_title.setValue(self.plt_index)
+
+    def plotOutputSignal(self):
+        data = np.load(r"D:\Repositories\open_gpias\open_gpias\Achim_LS01_pre__turner_and_threshold_2018.npy")
+        self.plot_it(data, self.plt_index)
+
+    def navigateRight(self):
+        self.plt_index += 1
+        self.label_title.setValue(self.plt_index)
 
     def trialFinishedEvent(self, data_extracted, idxStartle, protocol):
         self.plot_it(data_extracted, idxStartle)
@@ -223,6 +241,7 @@ class measurementGui(QtWidgets.QWidget):
 
     def plot_it(self, data, idx):
         """ provide the plot with the data """
+        print("plot_id", data.shape, idx)
         self.plot.setData(data[idx, :, :], idx)
         data[idx][6][0] = self.plot.get_max()
 
@@ -253,40 +272,55 @@ class measurementGui(QtWidgets.QWidget):
 
     def save_data(self, data_extracted, finished=True):
 
+        # add time from first trial
         if self.timeString == "":
             self.timeString = time.strftime("%Y-%m-%d_%H-%M")
 
-        if self.turner and self.hearingThreshold:
-            fileNameEnding = "_turner_and_threshold"
-        elif self.turner:
-            fileNameEnding = "_turner"
-        elif self.hearingThreshold:
-            fileNameEnding = "_threshold"
-        else:
-            raise RuntimeError
-        dirname = os.path.join(self.textEdit_Experimenter.text(), self.textEdit_Mousname.text(),
-                               self.textEdit_status.text(), self.timeString)
-        filename = "UNFINISHED_" + self.textEdit_Experimenter.text() + '_' + self.textEdit_Mousname.text() + '_' + self.textEdit_status.text() + "_" + fileNameEnding + "_" + self.timeString
-        directory = os.path.join(self.dir_measurements, dirname)
+        # get the string from the protocol
+        fileNameEnding = self.measurement_thread.protocolWidget.getProtocolName()
 
+        # get the string from the metadata
+        metadata = [self.textEdit_Experimenter.text(), self.textEdit_Mousname.text(),
+                               self.textEdit_status.text(), fileNameEnding, self.timeString]
+
+        # join the directory tree
+        dirname = os.path.join(*metadata)
+
+        # join the data into the filename
+        filename = "UNFINISHED_" + "_".join(metadata)
+
+        # get the output directories
+        directory = os.path.join(self.config.output_directory, self.config.directory_measurements, dirname)
+        directory_backup = os.path.join(self.config.output_directory, self.config.directory_backup, dirname)
+
+        # create directory
         if not os.path.exists(directory):
             os.makedirs(directory)
 
+        # save the data to the backup folder
         np.save(os.path.join(directory, filename + '_extracted_data.npy'), data_extracted)
 
+        # if the measurement is finished
         if finished:
+            # wait?  TODO Why?
             time.sleep(3)
-            # print(data_extracted[0])
-            # os.rename(os.path.join(directory, filename + '_raw_data.npy'), os.path.join(directory, filename.replace("UNFINISHED_","") + '_raw_data.npy'))
+
+            # rename the file to remove the "UNFINISHED_" tag
             os.rename(os.path.join(directory, filename + '_extracted_data.npy'),
                       os.path.join(directory, filename.replace("UNFINISHED_", "") + '_extracted_data.npy'))
+
+            # reset the time string
             self.timeString = ""
+
+            # extract and save the amplitudes
             only_amplitudes = self.raw_to_amplitude(data_extracted)
             np.save(os.path.join(directory, filename.replace("UNFINISHED_", "") + '_amplitudes.npy'), only_amplitudes)
-            directory_backup = directory.replace(Measurement_Directory, Backup_Measurement_Directory)
+
+            # create the directory for the backup
             if not os.path.exists(directory_backup):
                 os.makedirs(directory_backup)
 
+            # save the data to the backup folder
             np.save(os.path.join(directory_backup, filename.replace("UNFINISHED_", "") + '_extracted_data.npy'),
                     data_extracted)
 

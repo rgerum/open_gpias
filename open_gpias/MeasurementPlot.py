@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
 from scipy.signal import butter, lfilter
+import pandas as pd
 
 
 class plotWidget(QtWidgets.QWidget):
@@ -44,23 +45,22 @@ class plotWidget(QtWidgets.QWidget):
         self.figure.tight_layout(rect=[0, 0, 0.8, 1])
 
     def setData(self, data, number):
-        plt.close("all")
         self.idx = number
         self.title = "Plot" + str(number + 1)
 
         self.threshold = 0.05
 
-        self.data = data
+        self.data = pd.DataFrame(data.T, columns=["x", "y", "z", "trigger", "stimulus", "burst", "protocol"])
 
         # extracting x,y and z chanel from data array
-        self.data_x = data[0, :]
-        self.data_y = data[1, :]
-        self.data_z = data[2, :]
+        #self.data_x = data[0, :]
+        #self.data_y = data[1, :]
+        #self.data_z = data[2, :]
 
         # extracting trigger, stimulus and noise burst from data array
-        self.data_tr = data[3, :]
-        self.data_stim = data[4, :]
-        self.data_burst = data[5, :]
+        #self.data_tr = data[3, :]
+        #self.data_stim = data[4, :]
+        #self.data_burst = data[5, :]
 
         # data for information about current measurement
         if data[6][1] == 1:
@@ -84,13 +84,19 @@ class plotWidget(QtWidgets.QWidget):
         self.noiseTime = str(data[6][8])
 
         # Measurement time
-        self.t = np.linspace(0.0, 950.0, self.data_x.__len__())
+        self.t = np.linspace(0.0, 950.0, self.data["x"].__len__())
 
         # variable for movement control
         self.valid_trial = None
 
         # data, total acceleration, low pass filtered and calibrated
-        self.data_filt = self.rms(self.data_x / 0.9027, self.data_y, self.data_z / 3.8773)
+        self.data_filt = self.rms(self.data["x"] / 0.9027, self.data["y"], self.data["z"] / 3.8773)
+
+        self.plot_tr_stim_burst()
+        self.plot_raw()
+        self.plot_total()
+
+        self.canvas.draw()
 
     def plot(self):
         # check if animal has moved
@@ -177,7 +183,7 @@ class plotWidget(QtWidgets.QWidget):
         ax = self.ax3
         ax.cla()
 
-        if self.data:
+        if self.data is not None:
             ax.plot(self.t, self.data_filt)
 
             # horizontal line for movement threshold

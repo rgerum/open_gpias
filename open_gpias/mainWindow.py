@@ -27,7 +27,7 @@ class mainWindow(QtWidgets.QWidget):
 
         self.configEditor = ConfigEditor(self)
         self.config = self.configEditor.config
-        self.protocolEditor = SignalEditor(self)
+        self.protocolEditor = SignalEditor(self, self.config)
         self.measurementGui = measurementGui(self, self.protocolEditor, self.config)
 
         self.tabWidget = QtWidgets.QTabWidget()

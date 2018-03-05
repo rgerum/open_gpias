@@ -42,10 +42,11 @@ class SignalEditor(QtWidgets.QWidget):
     protocol = None
     error = ""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, config=None):
         super().__init__()
         self.setWindowTitle("Acoustic Startle Response - Signal Editor")
         self.parent = parent
+        self.config = config
 
         layout_main = QtWidgets.QVBoxLayout(self)
 
@@ -57,7 +58,7 @@ class SignalEditor(QtWidgets.QWidget):
             self.input_signal2.textEdited.connect(self.updateSignal)
             self.input_signal2.setText("silence(130)noiseBurst()")
         else:
-            self.input_protocol_file = gui_helpers.addFileChooser(layout_main, "Protocol file:", "", "byteType (*_HEARINGTHRESHOLD.npy *_TURNER.npy *_TURNER_AND_HEARINGTHRESHOLD.npy)")
+            self.input_protocol_file = gui_helpers.addFileChooser(layout_main, "Protocol file:", os.path.join(self.config.output_directory, self.config.directory_protocols), "byteType (*_HEARINGTHRESHOLD.npy *_TURNER.npy *_TURNER_AND_HEARINGTHRESHOLD.npy)")
             self.input_protocol_file.textEdited.connect(self.updateProtocolFile)
 
         layout_navigate = QtWidgets.QHBoxLayout(self)
@@ -154,6 +155,15 @@ class SignalEditor(QtWidgets.QWidget):
 
         if self.parent:
             self.parent.settingsUpdated.emit()
+
+    def getProtocolName(self):
+        if self.turner and self.hearingThreshold:
+            fileNameEnding = "_turner_and_threshold"
+        elif self.turner:
+            fileNameEnding = "_turner"
+        elif self.hearingThreshold:
+            fileNameEnding = "_threshold"
+        return fileNameEnding
 
     def plotOutputSignal(self):
         thisKonfig = self.protocol[self.label_title.value()]

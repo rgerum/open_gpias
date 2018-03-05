@@ -25,6 +25,9 @@ def file_iter(file):
         yield line.strip()
 
 
+config_filename = os.path.normpath(os.path.join(os.getenv('APPDATA'), "..", "Local", "OpenGPIAS", "config.txt"))
+
+
 class Config:
     device = ""
     channels = [1, 2, 3]
@@ -35,6 +38,12 @@ class Config:
 
     recordingrate = 10000
     recording_device = "Dev2"
+
+    output_directory = os.path.normpath(os.path.join(os.getenv('APPDATA'), "..", "..", "Desktop", "OpenGPIAS"))
+
+    directory_backup = "Backup"
+    directory_measurements = "Measurements"
+    directory_protocols = "Protocols"
 
     def load(self, filename):
         with open(filename, "r") as fp:
@@ -119,7 +128,7 @@ class ConfigEditor(QtWidgets.QWidget):
 
         self.config = Config()
         try:
-            self.config.load("config.txt")
+            self.config.load(config_filename)
         except FileNotFoundError:
             pass
         print(self.config)
@@ -157,7 +166,7 @@ class ConfigEditor(QtWidgets.QWidget):
         layout_main.addStretch()
 
     def save(self):
-        self.config.save("config.txt")
+        self.config.save(config_filename)
         if self.parent:
             self.parent.settingsUpdated.emit()
 

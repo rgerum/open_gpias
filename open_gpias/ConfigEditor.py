@@ -11,7 +11,7 @@ import time
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
 import qtawesome as qta
-from asr_setup import gui_helpers
+from open_gpias import gui_helpers
 import sounddevice as sd
 
 

@@ -1,5 +1,5 @@
 package:
-  name: asr_setup
+  name: open_gpias
   version: 0.7
 
 build:
@@ -7,7 +7,7 @@ build:
   preserve_egg_dir: True
   script: python setup.py install --single-version-externally-managed --record record.txt
   entry_points:
-    - asr_setup = asr_setup.mainWindow:main
+    - asr_setup = open_gpias.mainWindow:main
 
 source:
     path: .
@@ -29,6 +29,6 @@ about:
     home: https://bitbucket.org/randrian/asr_setup
     license: GPLv3
     license-family: GPL
-    doc_url: http://asr_setup.readthedocs.io/
+    doc_url: http://open_gpias.readthedocs.io/
     dev_url: https://bitbucket.org/randrian/asr_setup
     summary: Acoustic startle response measurement

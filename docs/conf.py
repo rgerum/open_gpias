@@ -22,7 +22,7 @@
 import sys
 import os
 import shlex
-import asr_setup.soundSignal
+import open_gpias.soundSignal
 
 print(os.getcwd())
 

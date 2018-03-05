@@ -28,8 +28,8 @@ import re
 import zipfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "asr_setup"))
-import asr_setup
-current_version = asr_setup.__version__
+import open_gpias
+current_version = open_gpias.__version__
 
 def CheckForUncommitedChanges(directory):
     old_dir = os.getcwd()

@@ -33,8 +33,10 @@ class Config:
     channels = [1, 2, 3]
     samplerate = 96000
     channel_latency = [0., 0., 0., 0.]
+
     profile_loudspeaker_noise = ""
     profile_loudspeaker_burst = ""
+    speaker_amplification_factor = [0.000019, 0.001 / 3200]
 
     recordingrate = 10000
     recording_device = "Dev2"
@@ -45,7 +47,7 @@ class Config:
     directory_measurements = "Measurements"
     directory_protocols = "Protocols"
 
-    acceleration_sensor_factors = [0.9027, 1, 3.8773]
+    acceleration_sensor_factors = [0.9027, 1.0, 3.8773]
 
     def load(self, filename):
         with open(filename, "r") as fp:
@@ -149,11 +151,25 @@ class ConfigEditor(QtWidgets.QWidget):
         self.input_channel_latency = gui_helpers.addLineEdit(layout_main, "Channel Latency (ms):", "0, 0, 14.8125, 14.8125", "0, 0, 14.8125, 14.8125")
         self.config.connect(self.input_channel_latency, "channel_latency")
 
+        self.input_speaker_amplification_factor = gui_helpers.addLineEdit(layout_main, "Speaker Amplification Factor:",
+                                                             "0.001, 0.001", "")
+        self.config.connect(self.input_speaker_amplification_factor, "speaker_amplification_factor")
+
         self.input_profile_noise = gui_helpers.addFileChooser(layout_main, "Profile Loudspeaker Noise:", "", "*.npy")
         self.config.connect(self.input_profile_noise, "profile_loudspeaker_noise")
 
         self.input_profile_burst = gui_helpers.addFileChooser(layout_main, "Profile Loudspeaker Burst:", "", "*.npy")
         self.config.connect(self.input_profile_burst, "profile_loudspeaker_burst")
+
+        self.input_recording_device = gui_helpers.addLineEdit(layout_main, "Recording Device:", "Dev0", "")
+        self.config.connect(self.input_recording_device, "recording_device")
+
+        self.input_recordingrate = gui_helpers.addSpinBox(layout_main, "Recording Rate (Hz):", 10000, 1000, 100000, step=1000)
+        self.config.connect(self.input_recordingrate, "recordingrate")
+
+        self.input_acceleration_sensor_factors = gui_helpers.addLineEdit(layout_main, "Acceleration sensor factors:",
+                                                             "0, 0, 0", "")
+        self.config.connect(self.input_acceleration_sensor_factors, "acceleration_sensor_factors")
 
         layout_buttons = QtWidgets.QHBoxLayout()
         layout_main.addLayout(layout_buttons)

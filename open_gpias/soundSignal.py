@@ -359,9 +359,9 @@ class Signal:
         b, a = self._butterBandpass(350, 20000, order=4)
         filtered_signal = scipy.signal.lfilter(b, a, signal)
         if prestim_signal:  # TODO what are these values?
-            v0 = 0.000019
+            v0 = self.config.acceleration_sensor_factors[0]  # 0.000019
         else:
-            v0 = 0.001 / 3200
+            v0 = self.config.acceleration_sensor_factors[1]  # 0.001 / 3200
         squared = filtered_signal ** 2
         sum_squared = np.sum(squared)
         effective_value = (sum_squared / np.sum(filtered_signal != 0)) ** (1 / 2)

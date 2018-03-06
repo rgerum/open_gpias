@@ -51,17 +51,8 @@ class plotWidget(QtWidgets.QWidget):
 
         self.threshold = 0.05
 
+        # create a pandas dataframe from the recorded data
         self.data = pd.DataFrame(data.T, columns=["x", "y", "z", "trigger", "stimulus", "burst", "protocol"])
-
-        # extracting x,y and z chanel from data array
-        #self.data_x = data[0, :]
-        #self.data_y = data[1, :]
-        #self.data_z = data[2, :]
-
-        # extracting trigger, stimulus and noise burst from data array
-        #self.data_tr = data[3, :]
-        #self.data_stim = data[4, :]
-        #self.data_burst = data[5, :]
 
         # data for information about current measurement
         if data[6][1] == 1:
@@ -73,7 +64,7 @@ class plotWidget(QtWidgets.QWidget):
         else:
             self.noise = "No"
 
-        if data[6][2] == True:
+        if data[6][2] is True:
             self.noiseGap = "Yes"
         else:
             self.noiseGap = "False"

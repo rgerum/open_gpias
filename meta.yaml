@@ -30,5 +30,5 @@ about:
     license: GPLv3
     license-family: GPL
     doc_url: http://open_gpias.readthedocs.io/
-    dev_url: https://bitbucket.org/randrian/asr_setup
+    dev_url: https://bitbucket.org/randrian/open_gpias
     summary: Acoustic startle response measurement

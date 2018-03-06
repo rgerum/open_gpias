@@ -20,10 +20,11 @@ import pandas as pd
 class plotWidget(QtWidgets.QWidget):
     data = None
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, config=None):
         super().__init__(parent=parent)
         self.layout = QtWidgets.QHBoxLayout()
         self.setLayout(self.layout)
+        self.config = config
 
         # initiation of canvas and toolbar
         self.figure = plt.figure("measurement")
@@ -90,7 +91,7 @@ class plotWidget(QtWidgets.QWidget):
         self.valid_trial = None
 
         # data, total acceleration, low pass filtered and calibrated
-        self.data_filt = self.rms(self.data["x"] / 0.9027, self.data["y"], self.data["z"] / 3.8773)
+        self.data_filt = self.rms(self.data["x"], self.data["y"], self.data["z"])
 
         self.plot_tr_stim_burst()
         self.plot_raw()

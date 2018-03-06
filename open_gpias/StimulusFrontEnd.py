@@ -76,7 +76,7 @@ class measurementGui(QtWidgets.QWidget):
         self.textEdit_out = gui_helpers.addLogBox(layout_properties2, "Output:")
         layout_properties2.addStretch()
 
-        self.plot = plotWidget()
+        self.plot = plotWidget(config=config)
         layout1.addWidget(self.plot)
 
         layout_buttons = QtWidgets.QHBoxLayout()

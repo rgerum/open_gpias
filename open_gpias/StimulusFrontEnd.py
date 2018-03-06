@@ -13,10 +13,8 @@ from qtpy import QtCore, QtGui, QtWidgets
 import qtawesome as qta
 from threading import Thread
 from . import StimulusBackend
-from . import Plot_Klasse
 from . import gui_helpers
 from .MeasurementPlot import plotWidget
-
 
 
 class measurementGui(QtWidgets.QWidget):
@@ -102,22 +100,23 @@ class measurementGui(QtWidgets.QWidget):
 
         self.textEdit_out.addLog("Program started")
 
-        data = np.load(r"D:\Repositories\open_gpias\open_gpias\Achim_LS01_pre__turner_and_threshold_2018.npy")
+        if 0:
+            data = np.load(r"D:\Repositories\open_gpias\open_gpias\Achim_LS01_pre__turner_and_threshold_2018.npy")
 
-        self.plt_index = 10
-        self.plot_it(data, self.plt_index)
+            self.plt_index = 10
+            self.plot_it(data, self.plt_index)
 
-        layout_navigate = QtWidgets.QHBoxLayout(self)
-        layout_properties.addLayout(layout_navigate)
-        gui_helpers.addPushButton(layout_navigate, "", self.navigateLeft, icon=qta.icon("fa.arrow-left"))
-        self.label_title = QtWidgets.QSpinBox()
-        self.label_title.setSuffix(" / 0")
-        self.label_title.setPrefix("Trial ")
-        self.label_title.setRange(0, 400)
-        self.label_title.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_title.valueChanged.connect(self.plotOutputSignal)
-        layout_navigate.addWidget(self.label_title)
-        gui_helpers.addPushButton(layout_navigate, "", self.navigateRight, icon=qta.icon("fa.arrow-right"))
+            layout_navigate = QtWidgets.QHBoxLayout(self)
+            layout_properties.addLayout(layout_navigate)
+            gui_helpers.addPushButton(layout_navigate, "", self.navigateLeft, icon=qta.icon("fa.arrow-left"))
+            self.label_title = QtWidgets.QSpinBox()
+            self.label_title.setSuffix(" / 0")
+            self.label_title.setPrefix("Trial ")
+            self.label_title.setRange(0, 400)
+            self.label_title.setAlignment(QtCore.Qt.AlignCenter)
+            self.label_title.valueChanged.connect(self.plotOutputSignal)
+            layout_navigate.addWidget(self.label_title)
+            gui_helpers.addPushButton(layout_navigate, "", self.navigateRight, icon=qta.icon("fa.arrow-right"))
 
     def navigateLeft(self):
         self.plt_index -= 1

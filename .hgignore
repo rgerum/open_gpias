@@ -6,3 +6,7 @@ docs/_build_html/*
 *.egg-info*
 *.orig
 development/nsis_conda/ASR_Setup.exe
+old/*
+dist/*
+*Open_GPIAS_Setup.exe
+*Open_GPIAS.exe

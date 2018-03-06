@@ -182,6 +182,9 @@ class Measurement(QtCore.QObject):
         # save which measurement was performed
         data_extracted[idxStartle][6][1:9] = this_trial
 
+        # normalize the acceleration sensor results
+        data[:3] /= np.array(self.config.acceleration_sensor_factors)
+
         # find the first frame where the trigger is higher than the threshold
         # data[3] is the threshold channel
         try:

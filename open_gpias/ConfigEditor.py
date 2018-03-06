@@ -45,6 +45,8 @@ class Config:
     directory_measurements = "Measurements"
     directory_protocols = "Protocols"
 
+    acceleration_sensor_factors = [0.9027, 1, 3.8773]
+
     def load(self, filename):
         with open(filename, "r") as fp:
             file = file_iter(fp)

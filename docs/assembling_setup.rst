@@ -34,22 +34,27 @@ Place Hardware
  
 Connect Hardware
 ~~~~~~~~~~~~~~~~
-Generally you can rely on the diagramm [hier das diagramam mit der Hardware] but to make sure you connect everything
-correct follow these steps and make sure that you label all cabels:
 
-- As the NIDAQ-Card will measure the Data of the soundcard there needs to be a BNC Tee connector on the plugs ai4 an ai5
+.. figure:: images/Hardware_Config.svg
+    :alt: Hardware configuration
+    :scale: 40%
+
+
+The diagram shows how the different components are connected.
+
+- NiDAQ-Card measures the data of the soundcard, therefore needs a BNC Tee connector on the plugs ai4 an ai5
 - As we will connect the audiochannels using BNC-Cabels plug chinch-BNC(male) connectors into the channels 1,3,4 of the soundcard 
 - Connect everything as stated by the following table
 
-SC:Soundcard
-SP:Sensorplatform
-BB:Breakoutbox
-NI:NIDAQ-Card
-AP:Amplifier Prestimulus
-AS:Amplifier Startle-Stimulus
+**SC**: soundcard
+**SP**: sensor platform
+**BB**: breakoutbox
+**NI**: NiDAQ-Card
+**AP**: amplifier pre-stimulus
+**AS**: amplifier startle-stimulus
 
 ============== ========================= ==========
-From           To                        Cabel
+From           To                        Cable
 -------------- ------------------------- ----------
 NI             BB                        ??
 SP-X           BB-ai0                    BNC
@@ -101,12 +106,12 @@ Preparation for frequency correction
 Measure impulse response and calculate equalizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - execute "equalizer_prestimulus.py"
-- if error "didn't find an apropriate noisefactor, is the microphone plugged in, the dezibelmeter at the right attenuation and the amplifier turned on?" occurs:
+- if error "didn't find an appropriate noise factor, is the microphone plugged in, the dezibelmeter at the right attenuation and the amplifier turned on?" occurs:
     - did you do all of the questioned? 
     - if not do it and try again
     - if yes try again and see if you hear a sound and if your dB device shows something, if not increase the Variable noisefactor_max and try again
 - if no error:
-    - does the graph "residual error signal power (logarithmic)" look correct? if yes follow the steps below. If not try again after you cecked if all the parameters are correct and everything is plugged in correct.
+    - does the graph "residual error signal power (logarithmic)" look correct? if yes follow the steps below. If not try again after you checked if all the parameters are correct and everything is plugged in correct.
 - copy "equalizer praestimulus lautsprecher.npy" into the folder "as_setup/Stimulation gui"
 - execute "equalizer_startlestimulus.py.py"
 - if error "didn't find an apropriate noisefactor, is the microphone plugged in, the dezibelmeter at the right attenuation and the amplifier turned on?" occurs:
@@ -114,7 +119,7 @@ Measure impulse response and calculate equalizer
     - if not do it and try again
     - if yes try again and see if you hear a sound and if your dB device shows something, if not increase the Variable noisefactor_max and try again
 - if no error:
-    - does the graph "residual error signal power (logarithmic)" look correct? if yes follow the steps below. If not try again after you cecked if all the parameters are correct and everything is plugged in correct.
+    - does the graph "residual error signal power (logarithmic)" look correct? if yes follow the steps below. If not try again after you checked if all the parameters are correct and everything is plugged in correct.
 - copy "equalizer schreckstimulus.npy" into the folder "as_setup/Stimulation gui"
 
 calibrate dB SPL
@@ -123,7 +128,7 @@ das muss ich noch machen, weil ich da nen programm zu schreiben muss, damit das 
 
 After calibration
 ^^^^^^^^^^^^^^^^^
-- Plug audio cabels back into their correct place
+- Plug audio cables back into their correct place
     - SC-1(Trigger) -> BB-ai3
     - SC-3(Prestim) -> BB-ai4 BNC
     - SC-4(Startle) -> BB-ai5 BNC

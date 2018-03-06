@@ -1,7 +1,7 @@
 Protocol Parts
 ==============
 
-.. autoclass:: asr_setup.signal.Signal
+.. autoclass:: open_gpias.soundSignal.Signal
     :members:
 
 

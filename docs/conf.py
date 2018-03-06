@@ -64,7 +64,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Open_GPIAS'
+project = u'Open GPIAS'
 copyright = u'2018, Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
 author = u'Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
 

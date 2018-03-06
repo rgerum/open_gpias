@@ -16,6 +16,8 @@ Open GPIAS is a program written in the Python programming language.
     installation
     hardware
     assembling_setup
+    configuration
+    calibration
     signal
 
 Note

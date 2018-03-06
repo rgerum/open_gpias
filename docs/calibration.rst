@@ -7,7 +7,8 @@ As this setup is no all in one setup it may differ from other setups and the tra
 That's why you need to calculate a new equalizer for your setup.
 There for you have two programs, "equalizer_prestimulus.py" and "equalizer_startlestimulus.py".
 
-**Read this first before you use them! If you do not take care of these instructions, you may destroy your speaker!**
+.. warning::
+    Read this first before you use them! If you do not take care of these instructions, you may destroy your speaker!
 
 The problem is that if you use a different speaker, amplifier, or soundcard the audiosignal may be too strong for your
 speaker and destroys it. That's why we limited the maximum Value using the variable noisefactor_max and adjusted it to

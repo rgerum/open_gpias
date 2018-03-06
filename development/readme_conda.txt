@@ -33,7 +33,7 @@ update those two packages
     
 specify the login
 
-    anaconda login --username rgerum --password carl1@Mureg
+    anaconda login --username rgerum --password *********
     
 set autoupload to "yes"
 
@@ -41,4 +41,4 @@ set autoupload to "yes"
     
 build the package
 
-    conda-build . -c conda-forge
+    conda-build . -c conda-forge -c dlidstrom

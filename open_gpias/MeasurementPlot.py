@@ -143,7 +143,7 @@ class plotWidget(QtWidgets.QWidget):
 
         ax.grid(True)
         ax.set_xlim((0, 950))
-        ax.set_ylim((-0.5, 3.5))
+        ax.set_ylim((-3.5, 3.5))
         ax.legend(loc='upper left', bbox_to_anchor=(1., 1), shadow=True, ncol=1)
 
         # title of X-Axis

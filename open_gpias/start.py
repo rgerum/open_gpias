@@ -3,5 +3,3 @@ from open_gpias.mainWindow import main
 
 main()
 #test()
-
-

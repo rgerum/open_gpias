@@ -13,7 +13,7 @@
 #
 # ClickPoints is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -27,7 +27,7 @@ import fnmatch
 import re
 import zipfile
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "asr_setup"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "open_gpias"))
 import open_gpias
 current_version = open_gpias.__version__
 
@@ -95,14 +95,14 @@ print("Setting version number to", new_version)
 RelaceVersion("setup.py", current_version, new_version)
 RelaceVersion("meta.yaml", current_version, new_version)
 RelaceVersion("docs/conf.py", current_version, new_version)
-RelaceVersion("asr_setup/__init__.py", current_version, new_version)
+RelaceVersion("open_gpias/__init__.py", current_version, new_version)
 
 if options.release or 1:
     # upload to pipy
     if 0:
         os.system("pip install twine")
         os.system("python setup.py sdist")
-        os.system("twine upload dist/asr_setup-%s.tar.gz --username %s --password %s" % (new_version, options.username, options.password))
+        os.system("twine upload dist/open_gpias-%s.tar.gz --username %s --password %s" % (new_version, options.username, options.password))
 
     # upload to conda
     os.system("conda install anaconda-client conda-build -y")

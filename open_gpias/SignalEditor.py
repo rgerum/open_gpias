@@ -16,6 +16,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 import pandas as pd
+from open_gpias.playlist import FrontendPlaylist
 
 
 # add exception hook hack to prevent from python just crashing without throwing an exception, which occurs on some Qt5 installations
@@ -49,6 +50,8 @@ class SignalEditor(QtWidgets.QWidget):
         self.config = config
 
         layout_main = QtWidgets.QVBoxLayout(self)
+
+        gui_helpers.addPushButton(layout_main, "new protocol", self.openProtocolCreator)
 
         if 0:
             self.input_signal = gui_helpers.addLineEdit(layout_main, "Signal:", "...", "")
@@ -91,6 +94,9 @@ class SignalEditor(QtWidgets.QWidget):
         self.play_list_index = 0
 
         layout_main.addStretch()
+
+    def openProtocolCreator(self):
+        FrontendPlaylist.PlaylistGenerator()
 
     def checkProtocol(self):
         if self.protocol is None:

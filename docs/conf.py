@@ -22,7 +22,6 @@
 import sys
 import os
 import shlex
-import open_gpias.soundSignal
 
 print(os.getcwd())
 

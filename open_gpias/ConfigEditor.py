@@ -137,13 +137,13 @@ class ConfigEditor(QtWidgets.QWidget):
             pass
         print(self.config)
 
-        self.input_devices = gui_helpers.addComboBox(layout_main, "Sounddevice:", device_names)
+        self.input_devices = gui_helpers.addComboBox(layout_main, "sound device:", device_names)
         self.config.connect(self.input_devices, "device")
         self.input_devices.currentTextChanged.connect(self.selectDevice)
         self.channel_count = 0
-        self.channel_trigger = gui_helpers.addComboBox(layout_main, "Channel-Trigger:", [])
-        self.channel_noise = gui_helpers.addComboBox(layout_main, "Channel-Noise:", [])
-        self.channel_burst = gui_helpers.addComboBox(layout_main, "Channel-Burst:", [])
+        self.channel_trigger = gui_helpers.addComboBox(layout_main, "channel trigger:", [])
+        self.channel_noise = gui_helpers.addComboBox(layout_main, "channel pre-stimulus:", [])
+        self.channel_burst = gui_helpers.addComboBox(layout_main, "channel startle-stimulus:", [])
 
         self.input_samplerate = gui_helpers.addSpinBox(layout_main, "Sample Rate (Hz):", 96000, 44100, 100000, step=1000)
         self.config.connect(self.input_samplerate, "samplerate")

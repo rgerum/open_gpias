@@ -47,17 +47,15 @@ In our setup, we use a PCIe-6320 data acquisition card connected to a Breakoutbo
 Sensor platform
 ---------------
 
+.. figure:: images/Sensors_Scheme.svg
+    :alt: Scheme of the sensor platform
+
 The sensor platform has to hold the animal at a fixed distance to the speakers. In addition, the animal has to be flexibly
 mounted to allow for measurable vibrations when the animal twitches in response to a startle stimulus.
 
 In out setup, we use a platform consisting of two plates. The upper plate has a mount for the animal restrainer and is
 mounted on the lower plate by four springs and two rubber foam blocks for damping. Underneath the upper plate, an acceleration
 sensor (ADXL 335 on a GY 61 board) is attached. The lower plate is screwed to the vibration isolated table.
-
-.. figure:: images/Sensors.png
-    :alt: Scheme of the sensor platform
-    :scale: 40%
-
 
 Animal restrainer
 -----------------

@@ -2,7 +2,7 @@ Calibration
 ===========
 
 Frequency correction
--------------------
+--------------------
 As this setup is no all in one setup it may differ from other setups and the transfer function will be different.
 That's why you need to calculate a new equalizer for your setup.
 There for you have two programs, "equalizer_prestimulus.py" and "equalizer_startlestimulus.py".

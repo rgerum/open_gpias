@@ -39,7 +39,6 @@ Connect Hardware
     :alt: Hardware configuration
     :scale: 40%
 
-
 The diagram shows how the different components are connected.
 
 - NiDAQ-Card measures the data of the soundcard, therefore needs a BNC Tee connector on the plugs ai4 an ai5

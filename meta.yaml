@@ -7,7 +7,7 @@ build:
   preserve_egg_dir: True
   script: python setup.py install --single-version-externally-managed --record record.txt
   entry_points:
-    - asr_setup = open_gpias.mainWindow:main
+    - open_gpias = open_gpias.mainWindow:main
 
 source:
     path: .
@@ -26,7 +26,7 @@ requirements:
     - pydaqmx
 
 about:
-    home: https://bitbucket.org/randrian/asr_setup
+    home: https://bitbucket.org/randrian/open_gpias
     license: GPLv3
     license-family: GPL
     doc_url: http://open_gpias.readthedocs.io/

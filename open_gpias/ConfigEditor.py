@@ -145,29 +145,29 @@ class ConfigEditor(QtWidgets.QWidget):
         self.channel_noise = gui_helpers.addComboBox(layout_main, "channel pre-stimulus:", [])
         self.channel_burst = gui_helpers.addComboBox(layout_main, "channel startle-stimulus:", [])
 
-        self.input_samplerate = gui_helpers.addSpinBox(layout_main, "Sample Rate (Hz):", 96000, 44100, 100000, step=1000)
+        self.input_samplerate = gui_helpers.addSpinBox(layout_main, "sample rate (Hz):", 96000, 44100, 100000, step=1000)
         self.config.connect(self.input_samplerate, "samplerate")
 
-        self.input_channel_latency = gui_helpers.addLineEdit(layout_main, "Channel Latency (ms):", "0, 0, 14.8125, 14.8125", "0, 0, 14.8125, 14.8125")
+        self.input_channel_latency = gui_helpers.addLineEdit(layout_main, "channel latency (ms):", "0, 0, 14.8125, 14.8125", "0, 0, 14.8125, 14.8125")
         self.config.connect(self.input_channel_latency, "channel_latency")
 
-        self.input_speaker_amplification_factor = gui_helpers.addLineEdit(layout_main, "Speaker Amplification Factor:",
+        self.input_speaker_amplification_factor = gui_helpers.addLineEdit(layout_main, "speaker amplification factor:",
                                                              "0.001, 0.001", "")
         self.config.connect(self.input_speaker_amplification_factor, "speaker_amplification_factor")
 
-        self.input_profile_noise = gui_helpers.addFileChooser(layout_main, "Profile Loudspeaker Noise:", "", "*.npy")
+        self.input_profile_noise = gui_helpers.addFileChooser(layout_main, "equalizer profile loudspeaker pre-stimulus:", "", "*.npy")
         self.config.connect(self.input_profile_noise, "profile_loudspeaker_noise")
 
-        self.input_profile_burst = gui_helpers.addFileChooser(layout_main, "Profile Loudspeaker Burst:", "", "*.npy")
+        self.input_profile_burst = gui_helpers.addFileChooser(layout_main, "equalizer profile loudspeaker startle-stimulus:", "", "*.npy")
         self.config.connect(self.input_profile_burst, "profile_loudspeaker_burst")
 
-        self.input_recording_device = gui_helpers.addLineEdit(layout_main, "Recording Device:", "Dev0", "")
+        self.input_recording_device = gui_helpers.addLineEdit(layout_main, "recording device:", "Dev0", "")
         self.config.connect(self.input_recording_device, "recording_device")
 
-        self.input_recordingrate = gui_helpers.addSpinBox(layout_main, "Recording Rate (Hz):", 10000, 1000, 100000, step=1000)
+        self.input_recordingrate = gui_helpers.addSpinBox(layout_main, "recording rate (Hz):", 10000, 1000, 100000, step=1000)
         self.config.connect(self.input_recordingrate, "recordingrate")
 
-        self.input_acceleration_sensor_factors = gui_helpers.addLineEdit(layout_main, "Acceleration sensor factors:",
+        self.input_acceleration_sensor_factors = gui_helpers.addLineEdit(layout_main, "acceleration sensor factors:",
                                                              "0, 0, 0", "")
         self.config.connect(self.input_acceleration_sensor_factors, "acceleration_sensor_factors")
 

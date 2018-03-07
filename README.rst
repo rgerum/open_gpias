@@ -4,7 +4,7 @@
 |DOC|_ |Python36| |License|_ |DOI|_
 
 .. |DOC| image:: https://readthedocs.org/projects/open-gpias/badge/
-.. _DOC: http://clickpoints.readthedocs.io
+.. _DOC: http://open-gpias.readthedocs.io
 
 .. |Python36| image:: https://img.shields.io/badge/python-3.6-blue.svg
 

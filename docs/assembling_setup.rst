@@ -1,22 +1,17 @@
 Assembling the Setup
 ====================
 
-Sensorplatform
---------------
-irgendwas von Matze
-
 Preperation
 -----------
 
 In order to make sure, there is no interruption while you assemble the hardware we advise you to make sure you do all preparations before you start to assemble:
 
 - Obtain the needed hardware
-- Install soundcard and NIDAQ-Card in the PC as described by their user manual
-- After installing the soundcard put its settings on 4 input and 4 output channels
+- Install the soundcard and NIDAQ-Card drivers as described in the corresponding user manual
+- After installing the soundcard change its settings to 4 input and 4 output channels
 - Build the sensor platform
 - Build at least one tube for the animals
 - Solder the speaker cables to a bnc connectors (male)
-- Think about where to place the hardware components and how to supply them with electricity
 
 Hardware
 --------
@@ -24,13 +19,12 @@ Hardware
 Place Hardware
 ~~~~~~~~~~~~~~
 
-- Place the pc, monitor, mouse, keyboard and connect them
 - Place the sensor platform in the soundproof chamber
 - Place the speaker(s) in front of the sensor platform without them blocking each other and both being horizontally
   centered in front of the tube. Place the startle-stimulus-speaker close to the sensor platform, as it needs to produce
-  a sound pressure level of 115 dB SPL which it will only manage if the distance is small. (max 5 cm???? 5 cm passt, oder?)
-- Place the amplifiers at the desired places and connect them to electricity
-- Place the powersupply for the sensor platform at the desired place and put it on 3V AC
+  a sound pressure level of 115 dB SPL which it will only manage if the distance is small. (max about 5 cm)
+- Connect the amplifiers
+- Connect the powersupply for the sensor platform with 3V AC
  
 Connect Hardware
 ~~~~~~~~~~~~~~~~

@@ -162,7 +162,8 @@ class Measurement(QtCore.QObject):
         # channel ai4: pre-stimulus
         # channel ai5: startle-stimulus
 
-        analog_input.CreateAIVoltageChan(self.config.recording_device+b'/ai0:5', b'', daq.DAQmx_Val_Cfg_Default, -10., 10., daq.DAQmx_Val_Volts,
+        name = bytes(self.config.recording_device, 'utf-8') + b'/ai0:5'
+        analog_input.CreateAIVoltageChan(name, b'', daq.DAQmx_Val_Cfg_Default, -10., 10., daq.DAQmx_Val_Volts,
                                          None)
         analog_input.CfgSampClkTiming(b'', rate, daq.DAQmx_Val_Rising, daq.DAQmx_Val_FiniteSamps, num_data_points)
 

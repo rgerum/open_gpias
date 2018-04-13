@@ -193,7 +193,12 @@ class ConfigEditor(QtWidgets.QWidget):
 
     def selectDevice(self):
         device_name = self.input_devices.currentText()
-        channels = sd.query_devices(device_name)["max_output_channels"]
+        i = -1
+        for i in range(1000):
+            i += 1
+            if sd.query_devices(i)["name"] == device_name:
+                break
+        channels = sd.query_devices(i)["max_output_channels"]
         for i in range(self.channel_count, channels):
             for comboBox in [self.channel_trigger, self.channel_noise, self.channel_burst]:
                 comboBox.addItems(["%d" % (i+1)])

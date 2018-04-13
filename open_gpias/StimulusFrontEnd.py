@@ -208,6 +208,7 @@ class measurementGui(QtWidgets.QWidget):
         if self.measurement_thread.pause:
             self.measurement_thread.pause = False
             return
+        self.measurement_thread.stop = False
 
         # reset this to notify save_data
         self.timeString = ""

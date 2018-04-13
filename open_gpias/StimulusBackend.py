@@ -125,7 +125,8 @@ class Measurement(QtCore.QObject):
             return False, "niDAQmx library not found!"
 
         # check if a channel can be set
-        analog_input.CreateAIVoltageChan(self.config.recording_device + b'/ai0:5', b'', daq.DAQmx_Val_Cfg_Default,
+        name = bytes(self.config.recording_device, 'utf-8') + b'/ai0:5'
+        analog_input.CreateAIVoltageChan(name, b'', daq.DAQmx_Val_Cfg_Default,
                                          -10., 10., daq.DAQmx_Val_Volts, None)
         analog_input.CfgSampClkTiming(b'', self.config.recordingrate, daq.DAQmx_Val_Rising, daq.DAQmx_Val_FiniteSamps, 1000)
         # return the status

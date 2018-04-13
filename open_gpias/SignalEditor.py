@@ -90,7 +90,7 @@ class SignalEditor(QtWidgets.QWidget):
 
         self.preparePlot()
 
-        self.signal = soundSignal.Signal(None)
+        self.signal = soundSignal.Signal(self.config)
         self.play_list_index = 0
 
         layout_main.addStretch()

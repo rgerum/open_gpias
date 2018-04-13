@@ -184,6 +184,9 @@ class ConfigEditor(QtWidgets.QWidget):
         layout_main.addStretch()
 
     def save(self):
+        directory = os.path.dirname(config_filename)
+        if not os.path.exists(directory):
+            os.mkdir(directory)
         self.config.save(config_filename)
         if self.parent:
             self.parent.settingsUpdated.emit()

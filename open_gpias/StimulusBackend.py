@@ -67,7 +67,7 @@ class Measurement(QtCore.QObject):
             stimulation_duration = self.play_stimulation(this_trial)
 
             # record the sound and acceleration
-            data = self.perform_nidaq_recording(stimulation_duration)
+            data = self.perform_nidaq_recording(stimulation_duration).copy()
 
             # post-process the recorded data
             data_extracted, found_threshold = self.extract_data(data, data_extracted, idxStartle, this_trial)
@@ -190,7 +190,7 @@ class Measurement(QtCore.QObject):
         data_extracted[idxStartle][6][1:9] = this_trial
 
         # normalize the acceleration sensor results
-        data[:3] /= np.array(self.config.acceleration_sensor_factors)
+        data[:3] /= np.array(self.config.acceleration_sensor_factors)[:, None]
 
         # find the first frame where the trigger is higher than the threshold
         # data[3] is the threshold channel
@@ -210,12 +210,12 @@ class Measurement(QtCore.QObject):
         # eliminate offset by taking the mean of the data without stimuli
         # and subtract it from all the data before plotting
         offset = data[:3, int(i - 0.8 * self.config.recordingrate):i]
-        offset_mean = np.mean(offset, axis=0)
+        offset_mean = np.mean(offset, axis=1)
 
         # extract all data 800ms prior to trigger
-        data = data[int(i - 0.8 * self.config.recordingrate):int(i - 0.8 * self.config.recordingrate) + data_extracted.shape[2]]
+        data = data[:, int(i - 0.8 * self.config.recordingrate):int(i - 0.8 * self.config.recordingrate) + data_extracted.shape[2]]
         # subtract the xyz offset
-        data[:3, :] -= offset_mean
+        data[:3, :] -= offset_mean[:, None]
         # add the data to the extracted data array
         data_extracted[idxStartle, 0:6, :] = data
 

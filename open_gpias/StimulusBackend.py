@@ -99,8 +99,14 @@ class Measurement(QtCore.QObject):
         return False
 
     def play(self, matrix_to_play):
+        i = -1
+        for i in range(1000):
+            i += 1
+            if sd.query_devices(i)["name"] == self.config.device:
+                break
+
         try:
-            sd.play(matrix_to_play, samplerate=self.config.samplerate, device=self.config.device)
+            sd.play(matrix_to_play, samplerate=self.config.samplerate, device=i)
         except sd.PortAudioError as err:
             self.error.emit(str(err))
 

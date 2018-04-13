@@ -538,13 +538,13 @@ class Signal:
             time_gap = self.timeGap
             time_noise2 = self.timeToNoiseBurst - self.timeGap + self.timeNoiseBurst
 
-            # join the signal: noise + silence + noise
-            preStimArray = np.concatenate((noise(time_noise1),
-                                           self.silence(time_gap),
-                                           noise(time_noise2)))
+            noise1 = self._adjustFreqAndLevel(noise(time_noise1), self.noiseSPL, prestim_signal=True)
+            noise2 = self._adjustFreqAndLevel(noise(time_noise2), self.noiseSPL, prestim_signal=True)
 
-            # adjust the output
-            preStimArray = self._adjustFreqAndLevel(preStimArray, self.noiseSPL, prestim_signal=True)
+            # join the signal: noise + silence + noise
+            preStimArray = np.concatenate((noise1,
+                                           self.silence(time_gap),
+                                           noise2))
 
         else:
             # times
@@ -553,7 +553,8 @@ class Signal:
             # join the signal: noise
             preStimArray = noise(time_noise)
 
-
+            # adjust the output
+            preStimArray = self._adjustFreqAndLevel(preStimArray, self.noiseSPL, prestim_signal=True)
 
         """ startle pulse channel """
         time_noise = noiseTime

@@ -32,7 +32,7 @@ class Config:
     device = ""
     channels = [1, 2, 3]
     samplerate = 96000
-    channel_latency = [0., 0., 0., 0.]
+    channel_latency = [0., 0., 14.8125, 14.8125]
 
     profile_loudspeaker_noise = ""
     profile_loudspeaker_burst = ""

@@ -92,8 +92,15 @@ class Signal:
         print(self.config.device)
         print(max(self.config.channels))
         print(self.config.samplerate)
+
+        i = -1
+        for i in range(1000):
+            i += 1
+            if sd.query_devices(i)["name"] == self.config.device:
+                break
+
         try:
-            sd.check_output_settings(self.config.device, channels=max(self.config.channels), samplerate=self.config.samplerate)
+            sd.check_output_settings(i, channels=max(self.config.channels), samplerate=self.config.samplerate)
         except sd.PortAudioError as err:
             return False, str(err)
         return True, "Device %s ready to play %d channels at %d Hz" % (self.config.device, max(self.config.channels), self.config.samplerate)

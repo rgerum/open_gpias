@@ -609,7 +609,7 @@ class Signal:
                                            self.silence(time_silence2)))
 
             # adjust the output
-            self._adjustFreqAndLevel(preStimArray, preStimLevel, prestim_signal=True)
+            preStimArray = self._adjustFreqAndLevel(preStimArray, preStimLevel, prestim_signal=True)
 
         else:
             # times

@@ -400,7 +400,7 @@ class TurnerDialog(QtWidgets.QDialog):
 
 # main widget which handles dialogs and saving of the konfig array
 class PlaylistGenerator(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, output_path):
         super().__init__()
         self.initUI()
         # list with Hearing threshold parameters
@@ -410,6 +410,8 @@ class PlaylistGenerator(QtWidgets.QWidget):
         # number of repeats for turner
         self.nTurner = 0
         self.nennerTurner = 0
+        # store output path
+        self.output_path = output_path
 
     def initUI(self):
         QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
@@ -445,7 +447,7 @@ class PlaylistGenerator(QtWidgets.QWidget):
             else:
                 # get the path to which the konfig array is supposed to be safed
                 path = QtWidgets.QFileDialog.getSaveFileName(filter="byteType (*.npy)",
-                                                   directory="C:/Users/Setup/Desktop/playlists")
+                                                   directory=self.output_path)
                 if not path[0] == "":
                     # generate the array and get the correct file ending
                     arr, endung = self.generateKonfigArray()
@@ -661,5 +663,5 @@ class PlaylistGenerator(QtWidgets.QWidget):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    ex = PlaylistGenerator()
+    ex = PlaylistGenerator("")
     app.exec_()

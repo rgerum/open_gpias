@@ -8,7 +8,7 @@ import sys
 from qtpy import QtCore, QtGui, QtWidgets
 import copy
 import numpy as np
-import open_gpias.playlist.BackendPlaylist
+import open_gpias.playlist.BackendPlaylist as BackendPlaylist
 
 
 ##DiaqlogClass to recive Schwellwert Messung Data

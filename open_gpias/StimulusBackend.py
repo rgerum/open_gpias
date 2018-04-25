@@ -35,12 +35,15 @@ class Measurement(QtCore.QObject):
     pause = False
     stop = False
 
-    def __init__(self, protocol, config):
+    def __init__(self, protocol, config, signal=None):
         QtCore.QObject.__init__(self)
         self.protocolWidget = protocol
         self.config = config
 
-        self.signal = Signal(config)
+        if signal is not None:
+            self.signal = signal
+        else:
+            self.signal = Signal(config)
 
     def run_thread(self):
         """  runs the thread to start the ASR-measurements """

@@ -26,7 +26,7 @@ class measurementGui(QtWidgets.QWidget):
     measurement_thread = None
     plot_window = None
 
-    def __init__(self, parent, protocol, config):
+    def __init__(self, parent, protocol, config, signal):
         super().__init__()
         self.setWindowTitle("Acoustic Startle Response - Measure")
         self.parent = parent
@@ -87,7 +87,7 @@ class measurementGui(QtWidgets.QWidget):
 
         self.setButtonStatus(0)
 
-        self.measurement_thread = StimulusBackend.Measurement(protocol, config)
+        self.measurement_thread = StimulusBackend.Measurement(protocol, config, signal)
         self.measurement_thread.trial_finished.connect(self.trialFinishedEvent)
         self.measurement_thread.measurement_finished.connect(self.m_finished)
         self.measurement_thread.paused.connect(self.m_paused)

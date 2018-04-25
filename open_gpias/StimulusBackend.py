@@ -20,6 +20,22 @@ import ctypes
 from .soundSignal import Signal
 
 
+def findPlateauRegion(data, thresh, min_width):
+    high_indices = np.where(data > thresh)[0]
+    count = 0
+    start = None
+    for v, index in zip(np.diff(high_indices), high_indices):
+        if v != 1:
+            count = 0
+            start = None
+        else:
+            if start is None:
+                start = index
+            count += 1
+            if count == min_width:
+                return start
+
+
 class Measurement(QtCore.QObject):
     trial_finished = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     measurement_finished = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject')
@@ -199,7 +215,7 @@ class Measurement(QtCore.QObject):
         # find the first frame where the trigger is higher than the threshold
         # data[3] is the threshold channel
         try:
-            i = np.where(data[3] > thresh)[0][0]
+            i = findPlateauRegion(data[3], thresh, 10)
         except IndexError:
             self.error.emit("No trigger in measurement.")
             # no trigger pulse found
@@ -207,7 +223,7 @@ class Measurement(QtCore.QObject):
 
         # trigger pulse too early
         if i < 0.5 * self.config.recordingrate:
-            self.error.emit("No trigger in measurement.")
+            self.error.emit("Trigger too early measurement.")
             raise RuntimeError("There was a trigger in the first 0.5 seconds of the data, this is not supposed to "
                                "happen! Check config array and trigger channel (ai03).")
 

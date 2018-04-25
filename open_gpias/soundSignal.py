@@ -78,20 +78,11 @@ class Signal:
         self.channels = self.config.channels
         self.channel_latency = self.config.channel_latency
 
-        print("++++++++++++++++++++++++++++++++++++")
-        print("++++++++++++++++++++++++++++++++++++")
-        print("self.channels", self.channels)
-        print("++++++++++++++++++++++++++++++++++++")
-
         with open(self.config.profile_loudspeaker_burst, "rb") as file:
-            print("loading config")
             self.h_inv_noiseburst = np.load(file, allow_pickle=False, fix_imports=False)
-            print("h_inv_noiseburst", self.h_inv_noiseburst)
 
         with open(self.config.profile_loudspeaker_noise, "rb") as file:
-            print("loading config")
             self.h_inv_prestim = np.load(file, allow_pickle=False, fix_imports=False)
-            print("prestim", self.h_inv_prestim)
 
         self.SAMPLE_RATE = self.config.samplerate
         self.device = self.config.device
@@ -408,7 +399,6 @@ class Signal:
             equalizer = self.h_inv_prestim
         else:
             equalizer = self.h_inv_noiseburst
-        print("equalizer",  equalizer, prestim_signal)
         if equalizer is None:
             return signal
         adjusted_signal = np.convolve(signal, equalizer)
@@ -430,9 +420,7 @@ class Signal:
     def _adjustFreqAndLevel(self, signal, attenuation, prestim_signal=True):
         """ adjust signal to have a flat frequency response and the right sound pressure level when played on the speaker """
         adjust_factor = self._adjustFactorAttenuation(attenuation, signal, prestim_signal=prestim_signal)
-        print("Factor", adjust_factor, attenuation, prestim_signal, signal)
         flattened = self._flattenFrequencyResponse(signal, prestim_signal=prestim_signal)
-        print("flattened", np.mean(np.abs(flattened)))
         output = flattened * adjust_factor
         self._checkOutputSignal(output)
         return output
@@ -483,7 +471,6 @@ class Signal:
             # get the channel
             channel = self.channels[index]-1
             # add the latency shift
-            print("_addChannelLatency", index, len(signals), self.channel_latency, self.channels)
             signal = self._addChannelLatency(signals[index], self.channel_latency[channel], max_latency)
             # initialize the output array if it is still None
             if output is None:
@@ -576,9 +563,7 @@ class Signal:
             preStimArray = noise(time_noise)
 
             # adjust the output
-            print("level_pre", np.mean(np.abs(preStimArray)), self.noiseSPL)
             preStimArray = self._adjustFreqAndLevel(preStimArray, self.noiseSPL, prestim_signal=True)
-            print("level_post", np.mean(np.abs(preStimArray)))
 
         """ startle pulse channel """
         time_noise = noiseTime
@@ -597,10 +582,6 @@ class Signal:
 
         # join the channels and apply the channels' latencies
         matrixToPlay = self._joinChannels(triggerArray, preStimArray, burstArray)
-        print("#########################################")
-        print("matrixToPlay", matrixToPlay.shape)
-        print("MatricMax", np.max(matrixToPlay, axis=0))
-        #matrixToPlay = matrixToPlay.T
 
         return matrixToPlay, noiseTime + self.timeNoiseBurst
 

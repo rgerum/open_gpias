@@ -66,8 +66,10 @@ class Signal:
         # variable that holds the noiseburst freq
         self.noiseburstArray = []
 
-        self.channels = [0, 2, 3]
+        self.channels = [1, 3, 4]
         self.channel_latency = [0, 0, 14.8125, 14.8125]
+
+        self.loadConfig()
 
     def loadConfig(self):
         """
@@ -76,11 +78,20 @@ class Signal:
         self.channels = self.config.channels
         self.channel_latency = self.config.channel_latency
 
+        print("++++++++++++++++++++++++++++++++++++")
+        print("++++++++++++++++++++++++++++++++++++")
+        print("self.channels", self.channels)
+        print("++++++++++++++++++++++++++++++++++++")
+
         with open(self.config.profile_loudspeaker_burst, "rb") as file:
+            print("loading config")
             self.h_inv_noiseburst = np.load(file, allow_pickle=False, fix_imports=False)
+            print("h_inv_noiseburst", self.h_inv_noiseburst)
 
         with open(self.config.profile_loudspeaker_noise, "rb") as file:
+            print("loading config")
             self.h_inv_prestim = np.load(file, allow_pickle=False, fix_imports=False)
+            print("prestim", self.h_inv_prestim)
 
         self.SAMPLE_RATE = self.config.samplerate
         self.device = self.config.device
@@ -93,14 +104,22 @@ class Signal:
         print(max(self.config.channels))
         print(self.config.samplerate)
 
-        i = -1
-        for i in range(1000):
-            i += 1
-            if sd.query_devices(i)["name"] == self.config.device:
-                break
-
         try:
-            sd.check_output_settings(i, channels=max(self.config.channels), samplerate=self.config.samplerate)
+            #sd.check_output_settings(self.config.device, channels=max(self.config.channels), samplerate=self.config.samplerate)
+            sd.play(np.zeros((10, max(self.config.channels))), device=self.config.device, samplerate=self.config.samplerate)
+        except ValueError:
+            i = -1
+            for i in range(1000):
+                i += 1
+                if sd.query_devices(i)["name"] == self.config.device:
+                    break
+            try:
+                sd.play(np.zeros((10, max(self.config.channels))), device=i,
+                        samplerate=self.config.samplerate)
+                #sd.check_output_settings(i, channels=max(self.config.channels),
+                #                         samplerate=self.config.samplerate)
+            except sd.PortAudioError as err:
+                return False, str(err)
         except sd.PortAudioError as err:
             return False, str(err)
         return True, "Device %s ready to play %d channels at %d Hz" % (self.config.device, max(self.config.channels), self.config.samplerate)
@@ -371,7 +390,7 @@ class Signal:
             v0 = self.config.speaker_amplification_factor[1]  # 0.001 / 3200
         squared = filtered_signal ** 2
         sum_squared = np.sum(squared)
-        effective_value = (sum_squared / np.sum(filtered_signal != 0)) ** (1 / 2)
+        effective_value = (sum_squared / np.sum(filtered_signal != 0)) ** 0.5
         level = np.log10(effective_value / v0) * 20
         return level
 
@@ -389,6 +408,7 @@ class Signal:
             equalizer = self.h_inv_prestim
         else:
             equalizer = self.h_inv_noiseburst
+        print("equalizer",  equalizer, prestim_signal)
         if equalizer is None:
             return signal
         adjusted_signal = np.convolve(signal, equalizer)
@@ -412,6 +432,7 @@ class Signal:
         adjust_factor = self._adjustFactorAttenuation(attenuation, signal, prestim_signal=prestim_signal)
         print("Factor", adjust_factor, attenuation, prestim_signal, signal)
         flattened = self._flattenFrequencyResponse(signal, prestim_signal=prestim_signal)
+        print("flattened", np.mean(np.abs(flattened)))
         output = flattened * adjust_factor
         self._checkOutputSignal(output)
         return output
@@ -455,13 +476,14 @@ class Signal:
         # check how much he channels are shifted
         max_latency = np.max(self.channel_latency)
         # check how many channel t up should have
-        max_channels = np.max(self.channels)+1
+        max_channels = np.max(self.channels)
         # iterate over the signals
         output = None
         for index in range(len(signals)):
             # get the channel
-            channel = self.channels[index]
+            channel = self.channels[index]-1
             # add the latency shift
+            print("_addChannelLatency", index, len(signals), self.channel_latency, self.channels)
             signal = self._addChannelLatency(signals[index], self.channel_latency[channel], max_latency)
             # initialize the output array if it is still None
             if output is None:
@@ -554,7 +576,9 @@ class Signal:
             preStimArray = noise(time_noise)
 
             # adjust the output
+            print("level_pre", np.mean(np.abs(preStimArray)), self.noiseSPL)
             preStimArray = self._adjustFreqAndLevel(preStimArray, self.noiseSPL, prestim_signal=True)
+            print("level_post", np.mean(np.abs(preStimArray)))
 
         """ startle pulse channel """
         time_noise = noiseTime
@@ -573,6 +597,10 @@ class Signal:
 
         # join the channels and apply the channels' latencies
         matrixToPlay = self._joinChannels(triggerArray, preStimArray, burstArray)
+        print("#########################################")
+        print("matrixToPlay", matrixToPlay.shape)
+        print("MatricMax", np.max(matrixToPlay, axis=0))
+        #matrixToPlay = matrixToPlay.T
 
         return matrixToPlay, noiseTime + self.timeNoiseBurst
 

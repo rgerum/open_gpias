@@ -43,7 +43,7 @@ class SignalEditor(QtWidgets.QWidget):
     protocol = None
     error = ""
 
-    def __init__(self, parent=None, config=None):
+    def __init__(self, parent=None, config=None, signal=None):
         super().__init__()
         self.setWindowTitle("Acoustic Startle Response - Signal Editor")
         self.parent = parent
@@ -90,7 +90,11 @@ class SignalEditor(QtWidgets.QWidget):
 
         self.preparePlot()
 
-        self.signal = soundSignal.Signal(self.config)
+        if signal is not None:
+            self.signal = signal
+        else:
+            self.signal = soundSignal.Signal(self.config)
+        self.parent.settingsUpdated.connect(self.signal.loadConfig)
         self.play_list_index = 0
 
         layout_main.addStretch()
@@ -193,7 +197,7 @@ class SignalEditor(QtWidgets.QWidget):
 
         x = np.arange(matrixToPlay.shape[0]) / self.signal.SAMPLE_RATE
         x = x - x[-1]
-        for index, i in enumerate([0, 2, 3]):
+        for index, i in enumerate([0, 2, 3]):  # TODO load correct channels
             self.plots[index].set_data(x, matrixToPlay[:, i])
             self.axes[index].set_xlim(x[-1]-1, x[-1])
             self.axes[index].set_ylim(-np.max(np.abs(matrixToPlay[:, i]))*1.1, np.max(np.abs(matrixToPlay[:, i]))*1.1)

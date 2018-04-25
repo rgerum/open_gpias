@@ -6,6 +6,7 @@ import qtawesome as qta
 from .ConfigEditor import ConfigEditor
 from .SignalEditor import SignalEditor
 from .StimulusFrontEnd import measurementGui
+from .soundSignal import Signal
 
 
 class mainWindow(QtWidgets.QWidget):
@@ -20,8 +21,9 @@ class mainWindow(QtWidgets.QWidget):
 
         self.configEditor = ConfigEditor(self)
         self.config = self.configEditor.config
-        self.protocolEditor = SignalEditor(self, self.config)
-        self.measurementGui = measurementGui(self, self.protocolEditor, self.config)
+        self.signal = Signal(self.config)
+        self.protocolEditor = SignalEditor(self, self.config, self.signal)
+        self.measurementGui = measurementGui(self, self.protocolEditor, self.config, self.signal)
 
         self.tabWidget = QtWidgets.QTabWidget()
         self.tabWidget.addTab(self.configEditor, qta.icon("fa.cogs"), "Config")

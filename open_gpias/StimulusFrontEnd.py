@@ -93,6 +93,7 @@ class measurementGui(QtWidgets.QWidget):
         self.measurement_thread.paused.connect(self.m_paused)
         self.measurement_thread.stopped.connect(self.m_stopped)
         self.measurement_thread.resumed.connect(self.m_resumed)
+        self.parent.settingsUpdated.connect(self.measurement_thread.signal.loadConfig)
 
         self.measurement_thread.error.connect(self.textEdit_out.addLog)
 

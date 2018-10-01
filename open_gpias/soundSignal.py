@@ -78,11 +78,13 @@ class Signal:
         self.channels = self.config.channels
         self.channel_latency = self.config.channel_latency
 
-        with open(self.config.profile_loudspeaker_burst, "rb") as file:
-            self.h_inv_noiseburst = np.load(file, allow_pickle=False, fix_imports=False)
+        if self.config.profile_loudspeaker_burst:
+            with open(self.config.profile_loudspeaker_burst, "rb") as file:
+                self.h_inv_noiseburst = np.load(file, allow_pickle=False, fix_imports=False)
 
-        with open(self.config.profile_loudspeaker_noise, "rb") as file:
-            self.h_inv_prestim = np.load(file, allow_pickle=False, fix_imports=False)
+        if self.config.profile_loudspeaker_noise:
+            with open(self.config.profile_loudspeaker_noise, "rb") as file:
+                self.h_inv_prestim = np.load(file, allow_pickle=False, fix_imports=False)
 
         self.SAMPLE_RATE = self.config.samplerate
         self.device = self.config.device

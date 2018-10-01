@@ -246,8 +246,8 @@ class measurementGui(QtWidgets.QWidget):
         self.plot.setData(data[idx, :, :], idx)
         data[idx][6][0] = self.plot.get_max()
 
-    def m_finished(self, data_extracted, all_data):
-        self.save_data(data_extracted, all_data)
+    def m_finished(self, data_extracted, empty):
+        self.save_data(data_extracted, finished=True)
         self.textEdit_out.addLog("Measurement finished")
         self.setButtonStatus(0)
         QtWidgets.QMessageBox.information(self, 'Finished', 'Measurement Completed')

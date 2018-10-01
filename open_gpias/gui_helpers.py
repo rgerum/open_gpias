@@ -79,7 +79,14 @@ class QLogWidget(QtWidgets.QTextEdit):
             layout.addWidget(self)
 
     def addLog(self, status):
-        self.log_texts += str(datetime.datetime.now()).split(".")[0]+" - "+status+"\n"
+        status = str(datetime.datetime.now()).split(".")[0]+" - "+status+"\n"
+        self.log_texts += status
+
+        # add the log text to the logfile
+        log_filename = os.path.join(os.getenv('APPDATA'), "Open_GPIAS", time.strftime("%Y-%m")+"_log.txt")
+        with open(log_filename, "a") as fp:
+            fp.write(status)
+
         self.setText(self.log_texts)
         # scroll down
         c = self.textCursor()

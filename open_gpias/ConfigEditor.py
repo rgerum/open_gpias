@@ -194,10 +194,19 @@ class ConfigEditor(QtWidgets.QWidget):
     def selectDevice(self):
         device_name = self.input_devices.currentText()
         i = -1
+        first_valid_id = None
         for i in range(1000):
             i += 1
-            if sd.query_devices(i)["name"] == device_name:
+            try:
+                name = sd.query_devices(i)["name"]
+                if first_valid_id is None:
+                    first_valid_id = i
+            except sd.PortAudioError:
+                continue
+            if name == device_name:
                 break
+        else:
+            i = first_valid_id
         channels = sd.query_devices(i)["max_output_channels"]
         for i in range(self.channel_count, channels):
             for comboBox in [self.channel_trigger, self.channel_noise, self.channel_burst]:

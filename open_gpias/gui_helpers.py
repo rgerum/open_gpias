@@ -1,6 +1,9 @@
 from qtpy import QtCore, QtGui, QtWidgets
 import qtawesome as qta
 import datetime
+import os
+import time
+
 
 class QFileChooseEdit(QtWidgets.QWidget):
     def __init__(self, directory, filter):
@@ -83,7 +86,10 @@ class QLogWidget(QtWidgets.QTextEdit):
         self.log_texts += status
 
         # add the log text to the logfile
-        log_filename = os.path.join(os.getenv('APPDATA'), "Open_GPIAS", time.strftime("%Y-%m")+"_log.txt")
+        directory = os.path.join(os.getenv('APPDATA'), "Open_GPIAS")
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+        log_filename = os.path.join(directory , time.strftime("%Y-%m")+"_log.txt")
         with open(log_filename, "a") as fp:
             fp.write(status)
 

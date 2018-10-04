@@ -49,8 +49,6 @@ class plotWidget(QtWidgets.QWidget):
         self.idx = number
         self.title = "Plot" + str(number + 1)
 
-        self.threshold = 0.05
-
         # create a pandas dataframe from the recorded data
         self.data = pd.DataFrame(data.T, columns=["x", "y", "z", "trigger", "stimulus", "burst", "protocol"])
 
@@ -179,7 +177,7 @@ class plotWidget(QtWidgets.QWidget):
             ax.plot(self.t, self.data_filt)
 
             # horizontal line for movement threshold
-            ax.axhline(y=self.threshold, xmax=0.84210526315, xmin=0, color='k', label='movement threshold')
+            ax.axhline(y=self.config.acceleration_threshold, xmax=0.84210526315, xmin=0, color='k', label='movement threshold')
 
             # arrow pointing at the maximum
             self.annot_max(self.t[8000:], self.data_filt[8000:], ax=None)
@@ -224,7 +222,7 @@ class plotWidget(QtWidgets.QWidget):
         """ check if animal has moved before noise burst """
         # data until threshold
         val = self.data_filt[:8000]
-        if max(val) > self.threshold:
+        if max(val) > self.config.acceleration_threshold:
             return False
         else:
             return True

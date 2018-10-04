@@ -48,6 +48,8 @@ class Config:
     directory_protocols = "Protocols"
 
     acceleration_sensor_factors = [0.9027, 1.0, 3.8773]
+    acceleration_sensor_sensitivity_v_to_g = 0.300
+    acceleration_threshold = 0.05
 
     def load(self, filename):
         with open(filename, "r") as fp:
@@ -170,6 +172,12 @@ class ConfigEditor(QtWidgets.QWidget):
         self.input_acceleration_sensor_factors = gui_helpers.addLineEdit(layout_main, "acceleration sensor factors:",
                                                              "0, 0, 0", "")
         self.config.connect(self.input_acceleration_sensor_factors, "acceleration_sensor_factors")
+
+        self.input_acceleration_sensor_sensitivity = gui_helpers.addLineEdit(layout_main, "acceleration sensor sensitivity (mV/g):", "0.300")
+        self.config.connect(self.input_acceleration_sensor_sensitivity, "acceleration_sensor_sensitivity_v_to_g")
+
+        self.input_acceleration_threshold = gui_helpers.addLineEdit(layout_main, "acceleration threshold (g):", "0.05")
+        self.config.connect(self.input_acceleration_threshold, "acceleration_threshold")
 
         layout_buttons = QtWidgets.QHBoxLayout()
         layout_main.addLayout(layout_buttons)

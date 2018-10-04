@@ -325,7 +325,47 @@ class measurementGui(QtWidgets.QWidget):
             np.save(os.path.join(directory_backup, filename.replace("UNFINISHED_", "") + '_extracted_data.npy'),
                     data_extracted)
 
+    def movementCheck(self, data):
+        """ check if animal has moved before noise burst """
+        # data until threshold
+        val = data[:8000]
+        if max(val) > self.config.acceleration_threshold:
+            return False
+        else:
+            return True
+
+    def get_max(self, data):
+        """
+        Calculation of max acceleration
+        """
+        # calculation of maximum only if trial is valid
+        if self.movementCheck(data):
+            # searching for maximum after stimulus
+            return max(data[800:])
+        else:
+            return np.NaN
+
+    def rms(self, data_x, data_y, data_z):
+        """ calculation of root mean square data and low pass filtering """
+        data = np.empty(shape=(data_x.__len__(), 1))
+
+        data_xf = self.butter_lowpass_filter(data_x)
+        data_yf = self.butter_lowpass_filter(data_y)
+        data_zf = self.butter_lowpass_filter(data_z)
+
+        sensitivity = self.config.acceleration_sensor_sensitivity_v_to_g
+        data = np.sqrt((data_xf / sensitivity) ** 2 + (data_yf / sensitivity) ** 2 + (data_zf / sensitivity) ** 2)
+        return data
+
     def raw_to_amplitude(self, extracted_data):
+        # HINT: 6 is the index of the headerline
+
+        # extract the maximal amplitude of each trial
+        for idx in range(len(extracted_data)):
+            # get the filtered rms of x, y, z
+            data = self.rms(extracted_data[idx][0], extracted_data[idx][1], extracted_data[idx][2])
+            extracted_data[idx][6][0] = self.get_max(data)
+
         only_amplitude = np.zeros((len(extracted_data), 10))
         for i, item in enumerate(extracted_data):
             only_amplitude[i] = item[6][:10]
@@ -429,3 +469,20 @@ class measurementGui(QtWidgets.QWidget):
             return False, "\n".join(errors)
         # if not, everything is fine
         return True, "Mouse %s measured by %s in state %s" % (self.textEdit_Mousname.text(), self.textEdit_Experimenter.text(), self.textEdit_status.text())
+
+
+    ##########low pass filter##########
+    def butter_lowpass(self, cutoff, oder, sf):
+        from scipy.signal import butter
+        N = oder
+        Fc = cutoff
+        nyq = sf / 2
+        b, a = butter(N, Fc / nyq, btype='low', analog=False)
+        return b, a
+
+    def butter_lowpass_filter(self, data):
+        from scipy.signal import lfilter
+        b, a = self.butter_lowpass(45, 6, 10000)
+        y = lfilter(b, a, data)
+        return y
+    ###################################

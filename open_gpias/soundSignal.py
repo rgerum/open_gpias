@@ -185,7 +185,7 @@ class Signal:
         b, a = self._butterBandpass(cut_low, cut_high)
         y = scipy.signal.lfilter(b, a, self.gaussianWhiteNoise(duration, smooth=0))
         if smooth:
-            return self._smoothEdges(y, 20)
+            return self._smoothEdges(y, smooth)
         else:
             return y
 
@@ -212,7 +212,7 @@ class Signal:
         band_noise = scipy.signal.lfilter(b, a, raw_noise)
         notch_noise = raw_noise - band_noise
         if smooth:
-            return self._smoothEdges(notch_noise, 20)
+            return self._smoothEdges(notch_noise, smooth)
         else:
             return notch_noise
 

@@ -179,7 +179,7 @@ class SignalEditor(QtWidgets.QWidget):
         return fileNameEnding
 
     def plotOutputSignal(self):
-        thisKonfig = self.protocol[self.label_title.value()]
+        thisKonfig = self.protocol[self.label_title.value()-1]
         noise = thisKonfig[noiseIDX]
         noiseGap = thisKonfig[noiseGapIDX]
         noiseFreqMin = thisKonfig[noiseFreqMinIDX]
@@ -197,10 +197,10 @@ class SignalEditor(QtWidgets.QWidget):
 
         x = np.arange(matrixToPlay.shape[0]) / self.signal.SAMPLE_RATE
         x = x - x[-1]
-        for index, i in enumerate([0, 2, 3]):  # TODO load correct channels
-            self.plots[index].set_data(x, matrixToPlay[:, i])
+        for index, i in enumerate(self.config.channels):  # TODO load correct channels
+            self.plots[index].set_data(x, matrixToPlay[:, i-1])
             self.axes[index].set_xlim(x[-1]-1, x[-1])
-            self.axes[index].set_ylim(-np.max(np.abs(matrixToPlay[:, i]))*1.1, np.max(np.abs(matrixToPlay[:, i]))*1.1)
+            self.axes[index].set_ylim(-np.max(np.abs(matrixToPlay[:, i-1]))*1.1, np.max(np.abs(matrixToPlay[:, i-1]))*1.1)
         self.canvas.draw()
 
     def preparePlot(self):

@@ -102,7 +102,7 @@ class SignalEditor(QtWidgets.QWidget):
     def openProtocolCreator(self):
         path = os.path.join(self.config.output_directory, self.config.directory_protocols)
         if not os.path.exists(path):
-            os.mkdir(path)
+            os.makedirs(path)
         FrontendPlaylist.PlaylistGenerator(path)
 
     def checkProtocol(self):

@@ -282,7 +282,7 @@ class measurementGui(QtWidgets.QWidget):
 
         # get the string from the metadata
         metadata = [self.textEdit_Experimenter.text(), self.textEdit_Mousname.text(),
-                               self.textEdit_status.text(), fileNameEnding, self.timeString]
+                               self.textEdit_status.text(), self.timeString]
 
         # join the directory tree
         dirname = os.path.join(*metadata)

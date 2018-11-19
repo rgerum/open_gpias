@@ -1,0 +1,34 @@
+package:
+  name: open_gpias
+  version: 0.8
+
+build:
+  number: 2
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record record.txt
+  entry_points:
+    - open_gpias = open_gpias.mainWindow:main
+
+source:
+    path: .
+
+requirements:
+  build:
+    - python
+    - setuptools
+    
+  run:
+    - python
+    - scipy
+    - matplotlib
+    - qtawesome
+    - python-sounddevice
+    - pydaqmx
+
+about:
+    home: https://bitbucket.org/randrian/open_gpias
+    license: GPLv3
+    license-family: GPL
+    doc_url: http://open_gpias.readthedocs.io/
+    dev_url: https://bitbucket.org/randrian/open_gpias
+    summary: Acoustic startle response measurement

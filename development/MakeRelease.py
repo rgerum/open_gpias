@@ -113,7 +113,7 @@ if options.release or 1:
 
     os.system("conda config --set anaconda_upload yes")
 
-    os.system("conda-build . -c conda-forge -c dlidstrom")
+    os.system("conda-build . -c conda-forge -c haberdashPI  ")
 
     # Commit changes to ClickPoints
     if 0:

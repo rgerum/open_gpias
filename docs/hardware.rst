@@ -62,7 +62,7 @@ Animal restrainer
 The animal restrainer has to hold the animal during the measurement. The restrainer should be designed, so that the animal
 is not able to turn around, and has to be designed to not alter the sound.
 
-In our setup, we use an animal restrainer made out of an acrylic tube (length x inner diameter, small: 102mm x 27mm (for mouse), middle: 137mm x 37mm (small gerbil), big: 137mm x 42mm (big gerbil) covered with a wire mesh at the front end and a plastic cap (custom 3D print) at the rear end.
+In our setup, we use an animal restrainer made out of an acrylic tube (length x inner diameter, small: 102mm x 27mm (for mouse, cap: `cap_small.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_small.stl>`_), middle: 137mm x 37mm (small gerbil, cap: `cap_normal.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_normal.stl>`_), big: 137mm x 42mm (big gerbil, cap: `cap_big.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_big.stl>`_) covered with a wire mesh at the front end and a plastic cap (custom 3D print) at the rear end.
 
 List of all components
 ----------------------

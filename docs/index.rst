@@ -24,4 +24,4 @@ Note
 ----
 
 If you encounter any bugs or unexpected behaviour, you are encouraged to report a bug in our
-Bitbucket `bugtracker <https://bitbucket.org/randrian/asr_setup/issues?status=new&status=open>`_.
+Bitbucket `bugtracker <https://bitbucket.org/randrian/open_gpias/issues>`_.

@@ -85,7 +85,8 @@ Acceleration sensor          ADXL 335 on a GY 61 board          4.20 €     htt
 Animal restrainer            Acrylic tube
                              3D printed cab
                              wire mesh
-Springs						 Febrotec 1.4310 d=0.50 Da=11.50 L0=22.40 c=0.075
+Springs						 Febrotec 1.4310 d=0.50 Da=11.50 
+							 L0=22.40 c=0.075
 Cables
 ============================ ================================ ============ =================================================================================
 

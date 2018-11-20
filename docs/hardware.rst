@@ -84,7 +84,8 @@ Sensor platform              Own construction
 Acceleration sensor          ADXL 335 on a GY 61 board          4.20 €     http://www.robotpark.com/GY-61-DXL335-3-Axis-Accelerometer-Module
 Animal restrainer            Acrylic tube
                              3D printed cab
-                             wire mesh
+Wire Mesh                    Driller 16910; 1.4 x 1.4 mm        4.71 €
+https://www.draht-driller.de/fliegengewebe-alu-zuschnitt/16910/fliegengitter-0600-mm-aluminium-zuschnitt
 Springs                      Febrotec 1.4310 d=0.50 
                              Da=11.50 
                              L0=22.40 c=0.075							 

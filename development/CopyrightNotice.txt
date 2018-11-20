@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # {0}
 
-# Copyright (c) 2018, Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum
+# Copyright (c) 2018, Richard Gerum, Achim Schilling, Hinrich Rahlfs, Matthias Streb
 #
 # This file is part of ASR-Setup.
 #

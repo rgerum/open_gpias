@@ -15,13 +15,13 @@ Hearing threshold
 -----------------
 
 For hearing threshold measurements, each trial can have a pre-stimulus in the form of a short (40 ms) pure tone 100 ms
-before the startle stimulus. For the protocol a frequency range (with octave, 1/2 octave or 1/4 octave steps), a sound
+before the startle stimulus. For the protocol a frequency range (octave, 1/2 octave or 1/4 octave steps), a sound
 pressure level range and a repetition count can be specified.
 
 GPIAS
 -----
 
-For GPIAS measurements, each trials has a white noise presented before the startle-stimulus. The noise can be interrupted
-by a short (50 ms, flattened with 20 ms sin²-ramps) gap of silence. The noise can be broad band, a frequency band centered
-around a middle frequency or a notch filtered noise. For each measurement different middle frequencies can be specified,
-as well as the number of measurement repetitions.
+For GPIAS measurements, each trial consists of a noise stimulus presented before the startle-stimulus. The noise can be interrupted
+by a short (50 ms, flattened with 20 ms sin²-ramps) gap of silence. The noise can be broad band or a frequency band centered
+around one frequency (other options will be implemented). For each measurement different center frequencies,
+as well as the number of measurement repetitions per stimulus condition can be specified.

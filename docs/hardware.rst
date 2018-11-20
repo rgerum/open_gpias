@@ -18,7 +18,7 @@ In our setup, we use a *Asus Xonar Essence STX II* 7.1 soundcard (SNR: 124 dB, c
 
 Amplifier
 ---------
-Broadband low noise Amplifier
+Broadband low noise amplifier
 
 - Amp74, Thomas Wulf, Frankfurt
 - Amp75, Thomas Wulf, Frankfurt
@@ -27,20 +27,20 @@ Loudspeaker
 -----------
 The setup can either be realized with one loudspeaker or two loudspeakers. Separating the pre-stimulus from the
 startle-stimulus loudspeaker has the advantage, that the speaker for the pre-stimulus is not damaged by the repeated
-application of loud pulses.
+application of loud startle-pulses.
 
-The pre-stimulus speaker should be able to reproduce the signal faithfully, while the start-stimulus speaker only needs
+The pre-stimulus speaker should be able to reproduce the signal faithfully, while the startle-stimulus speaker only needs
 to be able to present a loud burst.
 
 In our setup, we use:
 
 - Two-way loudspeaker Canton Plus XS.2 for the pre-stimulus
-- Neo-25s (Sinuslive) for the sartle-stimulus
+- Neo-25s (Sinuslive) for the startle-stimulus
 
 
 NiDAQ-Card
 ----------
-The data acquisition card needs at least six channels and a recording rate of 1 kHz.
+The data acquisition card needs at least six channels and a recording rate of 10 kHz.
 
 In our setup, we use a PCIe-6320 data acquisition card connected to a Breakoutbox BNC-2110.
 
@@ -53,14 +53,14 @@ Sensor platform
 The sensor platform has to hold the animal at a fixed distance to the speakers. In addition, the animal has to be flexibly
 mounted to allow for measurable vibrations when the animal twitches in response to a startle stimulus.
 
-In out setup, we use a platform consisting of two plates. The upper plate has a mount for the animal restrainer and is
+In our setup, we use a platform consisting of two plates. The upper plate has a mount for the animal restrainer and is
 mounted on the lower plate by four springs and two rubber foam blocks for damping. Underneath the upper plate, an acceleration
 sensor (ADXL 335 on a GY 61 board) is attached. The lower plate is screwed to the vibration isolated table.
 
 Animal restrainer
 -----------------
 The animal restrainer has to hold the animal during the measurement. The restrainer should be designed, so that the animal
-is not able to turn around, and has to be designed to not alter the sound.
+is not able to turn around, and that the restrainer does not cause acoustic distortions.
 
 In our setup, we use an animal restrainer made out of an acrylic tube (length x inner diameter, small: 102mm x 27mm (for mouse, cap: `cap_small.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_small.stl>`_), middle: 137mm x 37mm (small gerbil, cap: `cap_normal.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_normal.stl>`_), big: 137mm x 42mm (big gerbil, cap: `cap_big.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_big.stl>`_) covered with a wire mesh at the front end and a plastic cap (custom 3D print) at the rear end.
 

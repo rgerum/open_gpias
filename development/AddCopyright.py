@@ -28,5 +28,4 @@ for root, dirs, files in os.walk(os.path.join(os.path.dirname(__file__), "..")):
                             fp2.write(line)
                             continue
 
-
             shutil.move(full_filename+".tmp", full_filename)

@@ -48,5 +48,6 @@ Acceleration Sensors
 
 The acceleration sensors measure the response of the animal in three spatial directions.
 
-- **acceleration sensor factors**: three factors for the different acceleration sensors. Amplitudes will be divided by this
-  factor to account for different sensitivities. Example: 0.9027,1.0,3.8773. See calibration for details.
+- **acceleration sensor factors**: three factors for the different acceleration sensors (xyz). Amplitudes will be divided by this
+  factor to account for different forces needed to achieve the same acceleration. 
+  Example: 0.9027,1.0,3.8773. See calibration for details.

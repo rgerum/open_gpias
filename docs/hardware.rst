@@ -57,12 +57,23 @@ In our setup, we use a platform consisting of two plates. The upper plate has a 
 mounted on the lower plate by four springs and two rubber foam blocks for damping. Underneath the upper plate, an acceleration
 sensor (ADXL 335 on a GY 61 board) is attached. The lower plate is screwed to the vibration isolated table.
 
+We provide the technical drawings and CAD files for the sensor platform:
+
+- `Complete_Sensory_Platform.pdf <https://bitbucket.org/randrian/open_gpias_hardware/raw/tip/SensorsystemCadDrawing/Complete_Sensory_Platform.pdf>`_
+- `cadfiles.zip <https://bitbucket.org/randrian/open_gpias_hardware/get/tip.zip>`_
+
 Animal restrainer
 -----------------
 The animal restrainer has to hold the animal during the measurement. The restrainer should be designed, so that the animal
 is not able to turn around, and that the restrainer does not cause acoustic distortions.
 
-In our setup, we use an animal restrainer made out of an acrylic tube (length x inner diameter, small: 102mm x 27mm (for mouse, cap: `cap_small.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_small.stl>`_), middle: 137mm x 37mm (small gerbil, cap: `cap_normal.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_normal.stl>`_), big: 137mm x 42mm (big gerbil, cap: `cap_big.stl <https://bitbucket.org/randrian/open_gpias/raw/tip/hardware/caps/3D-printer/cap_big.stl>`_) covered with a wire mesh at the front end and a plastic cap (custom 3D print) at the rear end.
+In our setup, we use an animal restrainer made out of an acrylic tube (length x inner diameter, small: 102mm x 27mm (for mouse, cap:
+`cap_small.stl <https://bitbucket.org/randrian/open_gpias_hardware/raw/tip/caps/3D-printer/cap_small.stl>`_),
+middle: 137mm x 37mm (small gerbil, cap:
+`cap_normal.stl <https://bitbucket.org/randrian/open_gpias_hardware/raw/tip/caps/3D-printer/cap_normal.stl>`_),
+big: 137mm x 42mm (big gerbil, cap:
+`cap_big.stl <https://bitbucket.org/randrian/open_gpias_hardware/raw/tip/caps/3D-printer/cap_big.stl>`_)
+covered with a wire mesh at the front end and a plastic cap (custom 3D print) at the rear end.
 
 List of all components
 ----------------------
@@ -70,9 +81,9 @@ List of all components
 ============================ ================================ ============ =================================================================================
 Component                    Model                            Cost         Link
 ============================ ================================ ============ =================================================================================
-Anechoic chamber             XX
-Vibration isolated table     XX
-PC                           XX
+Anechoic chamber
+Vibration isolated table
+PC                             
 Soundcard                    Asus Xonar Essence STX II        310.00 €     https://www.amazon.com/Xonar-Essence-STX-II-7-1/dp/B00JF6RO7C
 Amplifier (pre-stimulus)     Amp 74, Thomas Wulf, Frankfurt
 Amplifier (startle-stimulus) Amp 75, Thomas Wulf, Frankfurt

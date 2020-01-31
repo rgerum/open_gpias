@@ -83,7 +83,7 @@ Component                    Model                            Cost         Link
 ============================ ================================ ============ =================================================================================
 Anechoic chamber
 Vibration isolated table
-PC                             
+PC
 Soundcard                    Asus Xonar Essence STX II        310.00 €     https://www.amazon.com/Xonar-Essence-STX-II-7-1/dp/B00JF6RO7C
 Amplifier (pre-stimulus)     Amp 74, Thomas Wulf, Frankfurt
 Amplifier (startle-stimulus) Amp 75, Thomas Wulf, Frankfurt

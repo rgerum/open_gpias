@@ -23,7 +23,6 @@ requirements:
     - matplotlib
     - qtawesome
     - python-sounddevice
-    - pydaqmx
 
 about:
     home: https://bitbucket.org/randrian/open_gpias

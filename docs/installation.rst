@@ -20,24 +20,22 @@ This will install the miniconda environment, if it is not already installed and 
 Python Packages
 ~~~~~~~~~~~~~~~
 
-If you are already familiar with python and have a python installation, you can choose one of the following ways:
+If you are already familiar with python and have a python installation, you can choose the following way:
 
-- If you are in a conda env: ``conda install -c conda-forge -c dlidstrom -c rgerum open_gpias`` (recomended)
-- Or with ``python setup.py install``
+    ``pip install open_gpias``
 
-We recommend the conda installation, as this should always be the newest version of Open GPIAS.
 
 Developer Version
 ~~~~~~~~~~~~~~~~~
 
 If you want to have Open GPIAS installed from the repository and be able to update to the newest changesets, you can
-follow this guide. First of all you need to have mercurial installed (`Mercurial <https://www.mercurial-scm.org/>`_).
+follow this guide.
 Then you can open a command line in the folder where you want to install Open GPIAS and run the following command:
 
-    ``hg clone https://bitbucket.org/randrian/open_gpias``
+    ``git clone https://github.com/fabrylab/shear_flow_deformation_cytometer``
 
 To install the package with all dependencies, execute:
 
-    ``python install_requirements_with_conda.py``
+    ``pip install -e .``
 
 in the downloaded repository directory.

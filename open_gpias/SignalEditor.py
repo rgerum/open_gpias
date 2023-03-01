@@ -78,7 +78,7 @@ class SignalEditor(QtWidgets.QWidget):
             self.input_protocol_file = gui_helpers.addFileChooser(layout_main, "Protocol file:", os.path.join(self.config.output_directory, self.config.directory_protocols), "byteType (*_HEARINGTHRESHOLD.npy *_TURNER.npy *_TURNER_AND_HEARINGTHRESHOLD.npy)")
             self.input_protocol_file.textEdited.connect(self.updateProtocolFile)
 
-        layout_navigate = QtWidgets.QHBoxLayout(self)
+        layout_navigate = QtWidgets.QHBoxLayout()
         layout_main.addLayout(layout_navigate)
         gui_helpers.addPushButton(layout_navigate, "", self.navigateLeft, icon=qta.icon("fa.arrow-left"))
         self.label_title = QtWidgets.QSpinBox()

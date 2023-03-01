@@ -40,5 +40,6 @@ setup(name='open_gpias',
                         'matplotlib',
                         'qtpy',
                         'PyDAQmx',
+                        'appdirs',
                         'pandas'],
       include_package_data=True)

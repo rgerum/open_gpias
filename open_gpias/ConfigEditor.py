@@ -39,7 +39,9 @@ def file_iter(file):
         yield line.strip()
 
 
-config_filename = os.path.normpath(os.path.join(os.getenv('APPDATA'), "..", "Local", "OpenGPIAS", "config.txt"))
+import appdirs
+from pathlib import Path
+config_filename = Path(appdirs.user_data_dir("OpenGPIAS", "rgerum")) / "config.txt"
 
 
 class Config:
@@ -55,7 +57,10 @@ class Config:
     recordingrate = 10000
     recording_device = "Dev2"
 
-    output_directory = os.path.normpath(os.path.join(os.getenv('APPDATA'), "..", "..", "Desktop", "OpenGPIAS"))
+    try:
+        output_directory = os.path.normpath(os.path.join(os.getenv('APPDATA'), "..", "..", "Desktop", "OpenGPIAS"))
+    except TypeError:
+        output_directory = os.path.normpath(os.path.join("~", "Desktop", "OpenGPIAS"))
 
     directory_backup = "Backup"
     directory_measurements = "Measurements"

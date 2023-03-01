@@ -107,7 +107,10 @@ class QLogWidget(QtWidgets.QTextEdit):
         self.log_texts += status
 
         # add the log text to the logfile
-        directory = os.path.join(os.getenv('APPDATA'), "Open_GPIAS")
+        import appdirs
+        from pathlib import Path
+
+        directory = Path(appdirs.user_data_dir("OpenGPIAS", "rgerum"))
         if not os.path.exists(directory):
             os.mkdir(directory)
         log_filename = os.path.join(directory , time.strftime("%Y-%m")+"_log.txt")

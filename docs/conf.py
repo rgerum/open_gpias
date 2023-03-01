@@ -65,7 +65,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Open GPIAS'
-copyright = u'2018, Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
+copyright = u'2018-2023, Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
 author = u'Hinrich Rahlfs, Matthias Streb, Achim Schilling, Richard Gerum'
 
 # The version info for the project you're documenting, acts as replacement for

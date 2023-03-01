@@ -32,7 +32,7 @@ If you want to have Open GPIAS installed from the repository and be able to upda
 follow this guide.
 Then you can open a command line in the folder where you want to install Open GPIAS and run the following command:
 
-    ``git clone https://github.com/fabrylab/shear_flow_deformation_cytometer``
+    ``git clone https://github.com/rgerum/open_gpias``
 
 To install the package with all dependencies, execute:
 

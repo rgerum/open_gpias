@@ -51,8 +51,8 @@ def findPlateauRegion(data, thresh, min_width):
 
 
 class Measurement(QtCore.QObject):
-    trial_finished = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
-    measurement_finished = QtCore.Signal('PyQt_PyObject', 'PyQt_PyObject')
+    trial_finished = QtCore.Signal(object, object, object)
+    measurement_finished = QtCore.Signal(object, object)
     error = QtCore.Signal(str)
 
     stopped = QtCore.Signal()
